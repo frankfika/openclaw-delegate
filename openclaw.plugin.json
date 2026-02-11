@@ -1,0 +1,47 @@
+{
+  "id": "openclaw-delegate",
+  "name": "OpenClaw Delegate",
+  "description": "Autonomous DAO Governance Agent — monitors Snapshot proposals, analyzes with AI, and helps you vote on-chain.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "deepseekApiKey": {
+        "type": "string",
+        "description": "DeepSeek API key for proposal analysis"
+      },
+      "trackedSpaces": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": ["aave.eth", "uniswapgovernance.eth", "lido-snapshot.eth", "ens.eth", "arbitrumfoundation.eth", "safe.eth"],
+        "description": "Snapshot space IDs to monitor"
+      },
+      "strategy": {
+        "type": "string",
+        "enum": ["conservative", "balanced", "aggressive"],
+        "default": "conservative",
+        "description": "Governance voting strategy"
+      },
+      "pollIntervalMinutes": {
+        "type": "number",
+        "default": 5,
+        "description": "How often to check for new proposals (minutes)"
+      },
+      "dashboardPort": {
+        "type": "number",
+        "default": 3001,
+        "description": "Port for the web dashboard API"
+      }
+    }
+  },
+  "uiHints": {
+    "deepseekApiKey": { "label": "DeepSeek API Key", "sensitive": true },
+    "trackedSpaces": { "label": "Tracked DAO Spaces" },
+    "strategy": { "label": "Voting Strategy" },
+    "pollIntervalMinutes": { "label": "Poll Interval (min)" },
+    "dashboardPort": { "label": "Dashboard Port" }
+  },
+  "skills": ["skills"],
+  "channels": []
+}

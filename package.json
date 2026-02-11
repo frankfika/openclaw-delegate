@@ -1,0 +1,20 @@
+{
+  "name": "openclaw-delegate",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+  "scripts": {
+    "dev": "npm run dev:server & npm run dev:frontend",
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build -w frontend",
+    "start": "npm run start -w server"
+  },
+  "dependencies": {
+    "@snapshot-labs/snapshot.js": "^0.14.20",
+    "ethers": "^5.8.0"
+  }
+}

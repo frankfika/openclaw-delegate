@@ -1,0 +1,9 @@
+{
+  "name": "OpenClaw Delegate",
+  "description": "An OpenClaw plugin for autonomous DAO governance — monitors Snapshot proposals, performs AI-powered risk analysis, and helps cast votes with human-in-the-loop confirmation.",
+  "framework": "openclaw-plugin",
+  "version": "1.0.0",
+  "repository": "https://github.com/openclaw/openclaw-delegate",
+  "homepage": "https://openclaw.ai",
+  "requestFramePermissions": []
+}
