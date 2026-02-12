@@ -44,30 +44,42 @@ function getTokenSymbol(spaceId?: string): string {
   return spaceId.split('.')[0].toUpperCase();
 }
 
-// Buy token button component
-function BuyTokenButton({ spaceId, variant = 'primary' }: { spaceId?: string; variant?: 'primary' | 'secondary' }) {
+// Buy token buttons component - Uniswap + 1inch
+function BuyTokenButtons({ spaceId }: { spaceId?: string }) {
   const tokenSymbol = getTokenSymbol(spaceId);
   const tokenAddress = getTokenAddress(spaceId);
 
-  const baseClass = "inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg font-semibold text-xs transition-all";
-  const primaryClass = "bg-zinc-900 text-white hover:bg-zinc-800";
-  const secondaryClass = "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200";
-
-  // Always link to Uniswap - with token address if known, otherwise just open Uniswap
-  const href = tokenAddress
+  // Uniswap link - with token address if known
+  const uniswapHref = tokenAddress
     ? `https://app.uniswap.org/swap?outputCurrency=${tokenAddress}`
     : 'https://app.uniswap.org/swap';
 
+  // 1inch link - with token address if known
+  const oneInchHref = tokenAddress
+    ? `https://app.1inch.io/#/1/simple/swap/ETH/${tokenAddress}`
+    : 'https://app.1inch.io/';
+
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${baseClass} ${variant === 'primary' ? primaryClass : secondaryClass}`}
-    >
-      {variant === 'primary' ? 'Buy' : 'Get'} {tokenSymbol}
-      <ExternalLink size={12} />
-    </a>
+    <div className="flex gap-2">
+      <a
+        href={uniswapHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-semibold text-xs transition-all bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 shadow-sm"
+      >
+        Buy {tokenSymbol}
+        <ExternalLink size={12} />
+      </a>
+      <a
+        href={oneInchHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-semibold text-xs transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 shadow-sm"
+      >
+        1inch DEX
+        <ExternalLink size={12} />
+      </a>
+    </div>
   );
 }
 
@@ -283,7 +295,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
                   <p className="text-xs text-zinc-600 mb-3">
                     Get {getTokenSymbol(spaceId)} tokens to cast your vote
                   </p>
-                  <BuyTokenButton spaceId={spaceId} />
+                  <BuyTokenButtons spaceId={spaceId} />
                 </>
               ) : (
                 // Snapshot governance - historical snapshot
@@ -303,7 +315,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
                   <p className="text-[10px] text-zinc-400 mb-4">
                     You didn't hold {getTokenSymbol(spaceId)} at that time
                   </p>
-                  <BuyTokenButton spaceId={spaceId} variant="secondary" />
+                  <BuyTokenButtons spaceId={spaceId} />
                 </>
               )}
             </div>
