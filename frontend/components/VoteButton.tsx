@@ -154,16 +154,29 @@ const VoteButton: React.FC<VoteButtonProps> = ({
               </p>
               <p className="mb-2">
                 Snapshot voting requires holding the DAO's governance tokens at the proposal's snapshot block height.
-                You need to own {spaceId ? `${spaceId.toUpperCase().split('.')[0]} governance tokens` : 'the DAO governance token'} to participate in voting.
+                You need to own <span className="font-bold text-amber-800">{spaceId ? `${spaceId.toUpperCase().split('.')[0]}` : 'governance'}</span> tokens to participate in voting.
               </p>
-              <a
-                href={`https://app.uniswap.org/#/swap?outputCurrency=${spaceId ? spaceId.split('.')[0] : 'token'}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-semibold text-xs hover:from-pink-600 hover:to-purple-600 transition-all shadow-sm"
-              >
-                Buy on Uniswap →
-              </a>
+              <p className="text-amber-600 font-semibold mb-2">
+                💡 Tip: Even a small amount (0.01-0.1 tokens) is often enough to vote!
+              </p>
+              <div className="flex gap-2 justify-center">
+                <a
+                  href={`https://app.uniswap.org/#/swap`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-semibold text-xs hover:from-pink-600 hover:to-purple-600 transition-all shadow-sm"
+                >
+                  Buy on Uniswap →
+                </a>
+                <a
+                  href={`https://app.1inch.io/#/1/simple/swap/ETH`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-semibold text-xs hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm"
+                >
+                  1inch (Best Price)
+                </a>
+              </div>
             </div>
           )}
         </div>

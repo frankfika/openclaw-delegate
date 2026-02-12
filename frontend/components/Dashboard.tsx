@@ -168,7 +168,7 @@ const Dashboard: React.FC<DashboardProps> = ({ proposals, onSelectProposal, onCh
             </div>
             <p className="text-xs text-zinc-600 bg-white/60 rounded-lg px-3 py-2 border border-indigo-100">
               <strong>Note:</strong> To vote, you need governance tokens from the specific DAO.
-              Don't have tokens? <a href="https://www.google.com/search?q=how+to+buy+DAO+governance+tokens" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 underline font-semibold">Learn how to get started →</a>
+              Don't have tokens? <a href="https://app.uniswap.org/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 underline font-semibold">Buy on Uniswap →</a>
             </p>
           </div>
         </div>
