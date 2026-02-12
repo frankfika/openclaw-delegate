@@ -1,73 +1,19 @@
-const SNAPSHOT_GRAPHQL_URL = 'https://hub.snapshot.org/graphql';
+import {
+  API_CONFIG,
+  DAO_CONFIGS,
+  getDAOBySpaceId,
+  getPointsForDAO,
+  getDAOTier,
+  getTrackedSpaceIds,
+} from '../../../shared/config.js';
 
-// Multi-chain DAO tracking configuration
-// Each DAO earns users different points based on their importance and activity
-const TRACKED_SPACES = [
-  // Tier 1 - Major DeFi Protocols (High points: 100 per vote)
-  'aave.eth',
-  'uniswapgovernance.eth',
-  'curve-dao.eth',
-  'compoundgrants.eth',
+// Re-export utility functions for backward compatibility
+export { getPointsForDAO, getDAOTier };
 
-  // Tier 2 - L2 & Infrastructure (Medium-High points: 80 per vote)
-  'arbitrumfoundation.eth',
-  'optimismgov.eth',
-  'stgdao.eth', // Stargate
-  'polygonfoundation.eth',
+// Get tracked spaces from shared config
+const TRACKED_SPACES = getTrackedSpaceIds();
 
-  // Tier 3 - DeFi & Liquidity (Medium points: 60 per vote)
-  'lido-snapshot.eth',
-  'balancer.eth',
-  'sushigov.eth',
-  'hop.eth',
-  '1inch.eth',
-
-  // Tier 4 - Infrastructure & Tools (Medium points: 60 per vote)
-  'ens.eth',
-  'safe.eth',
-  'gitcoindao.eth',
-  'thegraph.eth',
-
-  // Tier 5 - Emerging & Community (Lower points: 40 per vote)
-  'paraswap-dao.eth',
-  'olympusdao.eth',
-  'apecoin.eth',
-];
-
-// Point rewards per vote by DAO space
-export const DAO_POINT_REWARDS: Record<string, number> = {
-  // Tier 1
-  'aave.eth': 100,
-  'uniswapgovernance.eth': 100,
-  'curve-dao.eth': 100,
-  'compoundgrants.eth': 100,
-
-  // Tier 2
-  'arbitrumfoundation.eth': 80,
-  'optimismgov.eth': 80,
-  'stgdao.eth': 80,
-  'polygonfoundation.eth': 80,
-
-  // Tier 3
-  'lido-snapshot.eth': 60,
-  'balancer.eth': 60,
-  'sushigov.eth': 60,
-  'hop.eth': 60,
-  '1inch.eth': 60,
-
-  // Tier 4
-  'ens.eth': 60,
-  'safe.eth': 60,
-  'gitcoindao.eth': 60,
-  'thegraph.eth': 60,
-
-  // Tier 5
-  'paraswap-dao.eth': 40,
-  'olympusdao.eth': 40,
-  'apecoin.eth': 40,
-};
-
-interface SnapshotProposal {
+export interface SnapshotProposal {
   id: string;
   title: string;
   body: string;
@@ -87,25 +33,21 @@ interface SnapshotProposal {
   };
 }
 
-export async function fetchActiveProposals(daoFilter?: string): Promise<SnapshotProposal[]> {
-  const spaces = daoFilter
-    ? TRACKED_SPACES.filter(s => s.toLowerCase().includes(daoFilter.toLowerCase()))
-    : TRACKED_SPACES;
-
-  if (spaces.length === 0 && daoFilter) {
-    // Try the exact space ID
-    spaces.push(daoFilter);
+/**
+ * Build GraphQL query for proposals
+ */
+function buildProposalsQuery(spaces: string[], state?: string): string {
+  const whereConditions = [`space_in: ${JSON.stringify(spaces)}`];
+  if (state) {
+    whereConditions.push(`state: "${state}"`);
   }
 
-  const query = `
+  return `
     query Proposals {
       proposals(
-        first: 20
+        first: ${API_CONFIG.DEFAULT_PAGE_SIZE}
         skip: 0
-        where: {
-          space_in: ${JSON.stringify(spaces)}
-          state: "active"
-        }
+        where: { ${whereConditions.join(', ')} }
         orderBy: "created"
         orderDirection: desc
       ) {
@@ -129,26 +71,49 @@ export async function fetchActiveProposals(daoFilter?: string): Promise<Snapshot
       }
     }
   `;
-
-  const res = await fetch(SNAPSHOT_GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Snapshot API error: ${res.status}`);
-  }
-
-  const json = await res.json() as any;
-
-  if (json.errors) {
-    throw new Error(`Snapshot GraphQL error: ${JSON.stringify(json.errors)}`);
-  }
-
-  return json.data?.proposals || [];
 }
 
+/**
+ * Fetch active proposals from Snapshot
+ */
+export async function fetchActiveProposals(daoFilter?: string): Promise<SnapshotProposal[]> {
+  const spaces = daoFilter
+    ? TRACKED_SPACES.filter(s => s.toLowerCase().includes(daoFilter.toLowerCase()))
+    : TRACKED_SPACES;
+
+  if (spaces.length === 0 && daoFilter) {
+    spaces.push(daoFilter);
+  }
+
+  const query = buildProposalsQuery(spaces, 'active');
+
+  try {
+    const res = await fetch(API_CONFIG.SNAPSHOT_GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Snapshot API error: ${res.status}`);
+    }
+
+    const json = await res.json() as any;
+
+    if (json.errors) {
+      throw new Error(`Snapshot GraphQL error: ${JSON.stringify(json.errors)}`);
+    }
+
+    return json.data?.proposals || [];
+  } catch (err: any) {
+    console.error('Failed to fetch active proposals:', err.message);
+    throw err;
+  }
+}
+
+/**
+ * Fetch a single proposal by ID
+ */
 export async function fetchProposalById(id: string): Promise<SnapshotProposal | null> {
   const query = `
     query Proposal($id: String!) {
@@ -174,30 +139,35 @@ export async function fetchProposalById(id: string): Promise<SnapshotProposal | 
     }
   `;
 
-  const res = await fetch(SNAPSHOT_GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables: { id } }),
-  });
+  try {
+    const res = await fetch(API_CONFIG.SNAPSHOT_GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { id } }),
+    });
 
-  if (!res.ok) {
-    throw new Error(`Snapshot API error: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`Snapshot API error: ${res.status}`);
+    }
+
+    const json = await res.json() as any;
+    return json.data?.proposal || null;
+  } catch (err: any) {
+    console.error(`Failed to fetch proposal ${id}:`, err.message);
+    throw err;
   }
-
-  const json = await res.json() as any;
-  return json.data?.proposal || null;
 }
 
-// Fetch recent proposals (all states) for activity history
-export async function fetchRecentProposals(): Promise<SnapshotProposal[]> {
+/**
+ * Fetch recent proposals (all states)
+ */
+export async function fetchRecentProposals(limit?: number): Promise<SnapshotProposal[]> {
   const query = `
     query RecentProposals {
       proposals(
-        first: 50
+        first: ${limit || API_CONFIG.DEFAULT_PAGE_SIZE}
         skip: 0
-        where: {
-          space_in: ${JSON.stringify(TRACKED_SPACES)}
-        }
+        where: { space_in: ${JSON.stringify(TRACKED_SPACES)} }
         orderBy: "created"
         orderDirection: desc
       ) {
@@ -222,20 +192,76 @@ export async function fetchRecentProposals(): Promise<SnapshotProposal[]> {
     }
   `;
 
-  const res = await fetch(SNAPSHOT_GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  });
+  try {
+    const res = await fetch(API_CONFIG.SNAPSHOT_GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
 
-  if (!res.ok) throw new Error(`Snapshot API error: ${res.status}`);
-  const json = await res.json() as any;
-  return json.data?.proposals || [];
+    if (!res.ok) {
+      throw new Error(`Snapshot API error: ${res.status}`);
+    }
+
+    const json = await res.json() as any;
+    return json.data?.proposals || [];
+  } catch (err: any) {
+    console.error('Failed to fetch recent proposals:', err.message);
+    throw err;
+  }
 }
 
-// Helper function to get point reward for a DAO space
-export function getPointsForDAO(spaceId: string): number {
-  return DAO_POINT_REWARDS[spaceId] || 20; // Default 20 points for unlisted DAOs
+/**
+ * Fetch closed proposals for a specific DAO
+ */
+export async function fetchClosedProposals(spaceId: string, limit = 10): Promise<SnapshotProposal[]> {
+  const query = `
+    query ClosedProposals {
+      proposals(
+        first: ${limit}
+        skip: 0
+        where: { space: "${spaceId}", state: "closed" }
+        orderBy: "created"
+        orderDirection: desc
+      ) {
+        id
+        title
+        body
+        choices
+        start
+        end
+        snapshot
+        state
+        scores
+        scores_total
+        votes
+        type
+        network
+        space {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await fetch(API_CONFIG.SNAPSHOT_GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Snapshot API error: ${res.status}`);
+    }
+
+    const json = await res.json() as any;
+    return json.data?.proposals || [];
+  } catch (err: any) {
+    console.error(`Failed to fetch closed proposals for ${spaceId}:`, err.message);
+    return [];
+  }
 }
 
 // Get all tracked DAO spaces
@@ -243,33 +269,5 @@ export function getTrackedSpaces(): string[] {
   return [...TRACKED_SPACES];
 }
 
-// Tier 4 spaces (Infrastructure & Tools) - same points as tier 3 but different category
-const TIER_4_SPACES = ['ens.eth', 'safe.eth', 'gitcoindao.eth', 'thegraph.eth'];
-
-// Get DAO tier information
-export function getDAOTier(spaceId: string): { tier: number; points: number; name: string } {
-  const points = getPointsForDAO(spaceId);
-  let tier = 5;
-  let tierName = 'Emerging';
-
-  if (points >= 100) {
-    tier = 1;
-    tierName = 'Major DeFi';
-  } else if (points >= 80) {
-    tier = 2;
-    tierName = 'L2 & Infrastructure';
-  } else if (points >= 60) {
-    if (TIER_4_SPACES.includes(spaceId)) {
-      tier = 4;
-      tierName = 'Infrastructure & Tools';
-    } else {
-      tier = 3;
-      tierName = 'Established DeFi';
-    }
-  } else if (points >= 40) {
-    tier = 5;
-    tierName = 'Community';
-  }
-
-  return { tier, points, name: tierName };
-}
+// Re-export DAO configs for backward compatibility
+export { DAO_CONFIGS };

@@ -1,146 +1,227 @@
 import { AnalysisResult, RiskLevel, VoteType } from '../types';
 
-const API_BASE = import.meta.env.PROD
-  ? 'https://votenow-api.chenpitang2020.workers.dev/api'
-  : '/api';
+// API Configuration
+const API_BASE = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD
+    ? 'https://votenow-api.chenpitang2020.workers.dev/api'
+    : '/api'
+);
+
+/**
+ * Standard error handler for API calls
+ */
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Build URL with query parameters
+ */
+function buildUrl(path: string, params?: Record<string, string>): string {
+  const url = new URL(`${API_BASE}${path}`, window.location.origin);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.set(key, value);
+      }
+    });
+  }
+  return url.toString();
+}
+
+// ============ Proposal APIs ============
 
 export async function fetchProposals(dao?: string): Promise<any[]> {
-  const params = dao ? `?dao=${encodeURIComponent(dao)}` : '';
-  const res = await fetch(`${API_BASE}/proposals${params}`);
-  if (!res.ok) throw new Error('Failed to fetch proposals');
-  const json = await res.json();
-  // Handle both array and { total, proposals } response formats
-  return Array.isArray(json) ? json : (json.proposals || []);
+  const url = buildUrl('/proposals', dao ? { dao } : undefined);
+  const res = await fetch(url);
+  const data = await handleResponse<any[] | { proposals: any[] }>(res);
+  return Array.isArray(data) ? data : (data.proposals || []);
 }
 
 export async function fetchProposal(id: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/proposals/${encodeURIComponent(id)}`);
-  if (!res.ok) throw new Error('Failed to fetch proposal');
-  return res.json();
+  const url = buildUrl(`/proposals/${encodeURIComponent(id)}`);
+  const res = await fetch(url);
+  return handleResponse(res);
 }
+
+// ============ Analysis APIs ============
 
 export async function analyzeProposal(proposalText: string): Promise<AnalysisResult> {
   try {
-    const res = await fetch(`${API_BASE}/analysis`, {
+    const res = await fetch(buildUrl('/analysis'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ proposalText }),
     });
-    if (!res.ok) throw new Error('Analysis API error');
-    const data = await res.json();
 
-    // Map string enums
-    let riskEnum = RiskLevel.MEDIUM;
-    switch (data.riskLevel) {
-      case 'Low': riskEnum = RiskLevel.LOW; break;
-      case 'High': riskEnum = RiskLevel.HIGH; break;
-      case 'Critical': riskEnum = RiskLevel.CRITICAL; break;
-    }
-
-    let voteEnum = VoteType.ABSTAIN;
-    switch (data.recommendation) {
-      case 'For': voteEnum = VoteType.FOR; break;
-      case 'Against': voteEnum = VoteType.AGAINST; break;
-    }
-
-    return {
-      summary: data.summary,
-      riskLevel: riskEnum,
-      riskAnalysis: data.riskAnalysis,
-      strategyMatchScore: data.strategyMatchScore || 50,
-      strategyReasoning: data.strategyReasoning || 'Neutral strategic impact.',
-      recommendation: voteEnum,
-      keyPoints: data.keyPoints || [],
-      securityChecks: data.securityChecks || [],
-    };
+    const data = await handleResponse<Record<string, any>>(res);
+    return mapAnalysisResult(data);
   } catch (err) {
-    console.error('Analysis error, using fallback:', err);
-    return {
-      summary: "I've analyzed the payload. This is a treasury diversification attempt compatible with your 'Accumulation' strategy.",
-      riskLevel: RiskLevel.LOW,
-      riskAnalysis: 'CowSwap interaction verified safe.',
-      strategyMatchScore: 92,
-      strategyReasoning: 'Aligns with your preference for ETH exposure over stablecoins in Q4.',
-      recommendation: VoteType.FOR,
-      keyPoints: ['Converts 2M USDC to ETH', 'Uses MEV-protected solver', 'Slippage capped at 0.5%'],
-      securityChecks: [
-        { name: 'Malicious Contract Scan', status: 'pass', details: 'No known phishing signatures.' },
-        { name: 'Treasury Impact', status: 'warning', details: 'Short-term volatility exposure.' },
-        { name: 'Governor Integrity', status: 'pass', details: 'Proposal submitted by Guardian.' },
-      ],
-    };
+    console.error('Analysis API error:', err);
+    return getFallbackAnalysis();
   }
 }
+
+function mapAnalysisResult(data: Record<string, any>): AnalysisResult {
+  // Map string enums
+  let riskEnum = RiskLevel.MEDIUM;
+  switch (data.riskLevel) {
+    case 'Low': riskEnum = RiskLevel.LOW; break;
+    case 'High': riskEnum = RiskLevel.HIGH; break;
+    case 'Critical': riskEnum = RiskLevel.CRITICAL; break;
+  }
+
+  let voteEnum = VoteType.ABSTAIN;
+  switch (data.recommendation) {
+    case 'For': voteEnum = VoteType.FOR; break;
+    case 'Against': voteEnum = VoteType.AGAINST; break;
+  }
+
+  return {
+    summary: data.summary || 'Analysis unavailable',
+    riskLevel: riskEnum,
+    riskAnalysis: data.riskAnalysis || 'No risk analysis available',
+    strategyMatchScore: Math.min(100, Math.max(0, data.strategyMatchScore || 50)),
+    strategyReasoning: data.strategyReasoning || 'No strategy reasoning available',
+    recommendation: voteEnum,
+    keyPoints: Array.isArray(data.keyPoints) ? data.keyPoints : [],
+    securityChecks: Array.isArray(data.securityChecks) ? data.securityChecks : [],
+  };
+}
+
+function getFallbackAnalysis(): AnalysisResult {
+  return {
+    summary: 'AI analysis temporarily unavailable. Please review the proposal manually.',
+    riskLevel: RiskLevel.MEDIUM,
+    riskAnalysis: 'Unable to perform automated risk analysis at this time.',
+    strategyMatchScore: 50,
+    strategyReasoning: 'Strategy alignment cannot be determined without analysis.',
+    recommendation: VoteType.ABSTAIN,
+    keyPoints: [
+      'AI analysis temporarily unavailable',
+      'Please review proposal content manually',
+      'Consider seeking community input',
+    ],
+    securityChecks: [
+      { name: 'AI Analysis', status: 'warning', details: 'Service temporarily unavailable' },
+      { name: 'Manual Review', status: 'pass', details: 'Recommended before voting' },
+      { name: 'Community Input', status: 'pass', details: 'Consider discussing with community' },
+    ],
+  };
+}
+
+// ============ Chat APIs ============
 
 export async function chatWithAgent(
   history: { role: string; content: string }[],
   context: string
 ): Promise<string> {
   try {
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(buildUrl('/chat'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ history, context }),
     });
-    if (!res.ok) throw new Error('Chat API error');
-    const data = await res.json();
-    return data.reply;
-  } catch {
-    return 'My connection to the neural core is unstable. I cannot process dynamic queries right now.';
+
+    const data = await handleResponse<{ reply: string }>(res);
+    return data.reply || 'No response generated';
+  } catch (err) {
+    console.error('Chat API error:', err);
+    return 'Unable to connect to AI service. Please try again later.';
   }
 }
 
+// ============ Activity APIs ============
+
 export async function fetchActivityLog(): Promise<any[]> {
   try {
-    const res = await fetch(`${API_BASE}/activity`);
-    if (!res.ok) throw new Error('Activity API error');
-    return res.json();
-  } catch {
+    const res = await fetch(buildUrl('/activity'));
+    return handleResponse(res);
+  } catch (err) {
+    console.error('Activity API error:', err);
     return [];
   }
 }
 
-// --- Points & Rewards API ---
+// ============ Points & Rewards APIs ============
 
 export async function fetchUserPoints(address: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/points/${address}`);
-  if (!res.ok) throw new Error('Failed to fetch points');
-  return res.json();
+  const url = buildUrl(`/points/${address}`);
+  const res = await fetch(url);
+  return handleResponse(res);
 }
 
 export async function fetchUserDashboard(address: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/users/${address}/dashboard`);
-  if (!res.ok) throw new Error('Failed to fetch dashboard');
-  return res.json();
+  const url = buildUrl(`/users/${address}/dashboard`);
+  const res = await fetch(url);
+  return handleResponse(res);
 }
 
 export async function fetchLeaderboard(limit = 20): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/leaderboard?limit=${limit}`);
-  if (!res.ok) throw new Error('Failed to fetch leaderboard');
-  return res.json();
+  const url = buildUrl('/leaderboard', { limit: String(limit) });
+  const res = await fetch(url);
+  return handleResponse(res);
 }
 
 export async function fetchRewards(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/rewards?active=true`);
-  if (!res.ok) throw new Error('Failed to fetch rewards');
-  return res.json();
+  const url = buildUrl('/rewards', { active: 'true' });
+  const res = await fetch(url);
+  return handleResponse(res);
 }
 
 export async function redeemReward(address: string, rewardId: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/rewards/${rewardId}/redeem`, {
+  const url = buildUrl(`/rewards/${rewardId}/redeem`);
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ walletAddress: address }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Redeem failed' }));
-    throw new Error(err.error || 'Redeem failed');
-  }
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchRedemptions(address: string): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/redemptions/user/${address}`);
-  if (!res.ok) throw new Error('Failed to fetch redemptions');
-  return res.json();
+  const url = buildUrl(`/redemptions/user/${address}`);
+  const res = await fetch(url);
+  return handleResponse(res);
+}
+
+// ============ Vote APIs ============
+
+export async function submitVote(
+  proposalId: string,
+  choice: number,
+  signature: string,
+  metadata?: Record<string, any>
+): Promise<any> {
+  const url = buildUrl('/votes');
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      proposalId,
+      choice,
+      signature,
+      ...metadata,
+    }),
+  });
+  return handleResponse(res);
+}
+
+// ============ Health Check ============
+
+export async function checkAPIHealth(): Promise<{ healthy: boolean; latency?: number }> {
+  const start = Date.now();
+  try {
+    const res = await fetch(buildUrl('/health'));
+    return {
+      healthy: res.ok,
+      latency: Date.now() - start,
+    };
+  } catch {
+    return { healthy: false, latency: Date.now() - start };
+  }
 }
