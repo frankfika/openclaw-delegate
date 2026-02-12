@@ -1,16 +1,12 @@
 import { createConfig, http } from 'wagmi';
 import { mainnet, sepolia, arbitrum, optimism, polygon } from 'wagmi/chains';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
+import { injected, coinbaseWallet } from 'wagmi/connectors';
 
 export const wagmiConfig = createConfig({
   chains: [mainnet, sepolia, arbitrum, optimism, polygon],
   connectors: [
     injected(), // MetaMask, Trust, Coinbase extension, etc.
-    walletConnect({
-      projectId: 'YOUR_PROJECT_ID', // You'll need to get this from WalletConnect Cloud
-      showQrModal: true,
-    }),
     coinbaseWallet({
       appName: 'VoteNow',
     }),
