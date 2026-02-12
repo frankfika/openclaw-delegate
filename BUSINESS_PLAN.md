@@ -1,700 +1,340 @@
 # VoteNow Business Plan
-**Multi-Chain DAO Governance Aggregator with AI-Powered Decision Support**
+**The AI-Powered Governance Layer for Web3**
 
 ---
 
-## Executive Summary
+## 一、核心问题与解决方案
 
-### Vision
-Democratize DAO governance participation by making it accessible, rewarding, and intelligent for every Web3 user.
+### 1.1 我们解决什么问题？
 
-### Mission
-Transform passive token holders into active governance participants through AI-powered insights and gamified incentives.
+**DAO治理的现状是一团糟：**
+- **碎片化**：1000+ DAO分布在50+条链，用户需要在Snapshot、Tally、Discourse、Discord之间来回切换
+- **低参与率**：平均投票参与率仅3-10%，Uniswap治理投票率经常低于5%
+- **信息过载**：一个提案动辄几千字，普通用户根本不知道该怎么投
+- **没有即时激励**：投票是义务劳动，除了"对协议有好处"外，用户得不到任何即时回报
 
-### The Problem
-1. **Governance Fragmentation**: 1000+ DAOs across 50+ chains with no unified interface
-2. **Low Participation**: Average DAO voter turnout is 3-10% despite billions in treasuries
-3. **Information Overload**: Complex proposals require hours of research to understand
-4. **No Incentives**: Voting is time-consuming with no immediate rewards (beyond protocol alignment)
+### 1.2 我们的解决方案
 
-### The Solution: VoteNow
-A multi-chain governance aggregator that:
-- **Aggregates** proposals from 20+ major DAOs (Aave, Uniswap, Arbitrum, etc.) in one dashboard
-- **Analyzes** proposals using AI (DeepSeek) for risk assessment and personalized recommendations
-- **Rewards** users with points (40-100 per vote) redeemable for USDC, NFTs, and benefits
-- **Simplifies** voting with one-click MetaMask signing (no gas fees, Snapshot integration)
+VoteNow = **治理聚合器 + AI分析师 + 激励层**
 
-### Market Opportunity
-- **Total Addressable Market**: 15M+ DAO token holders globally
-- **Current Annual Voting Volume**: 500K+ votes across major DAOs
-- **Treasury Value**: $25B+ controlled by top 50 DAOs
-- **Projected Growth**: 3x by 2028 as DAOs become standard corporate structure
-
-### Traction (Current MVP)
-- 20 integrated DAOs across 4 chains (Ethereum, Arbitrum, Optimism, Polygon)
-- Real Snapshot voting with EIP-712 signatures
-- 75 passing automated tests
-- AI-powered analysis via DeepSeek
-- 9 reward items (USDC, ARB tokens, NFT badges)
-
-### Funding Ask & Use
-**Seeking**: $500K seed round
-- 40% Engineering (mobile app, 50+ DAOs, on-chain voting)
-- 30% Rewards Pool (user acquisition via point redemptions)
-- 20% Marketing (influencer partnerships, DAO treasury grants)
-- 10% Operations
+**核心功能：**
+1. **一站式投票**：20+主流DAO的提案全部聚合在一个界面，一键投票（通过Snapshot签名）
+2. **AI分析师（Governance Agent）**：DeepSeek驱动的专属分析师，用2句话告诉你提案是什么、风险多大、该怎么投
+3. **投票即赚**：每次投票获得40-100积分，可兑换USDC、NFT、gas券
 
 ---
 
-## Product Overview
+## 二、AI体现在哪里？不是噱头，是核心竞争力
 
-### Core Features
+### 2.1 我们的AI不是简单的"总结"
 
-#### 1. Multi-Chain DAO Aggregation
-**Current Status**: Live with 20 DAOs
-- **Tier 1 DAOs** (100 pts/vote): Aave, Uniswap, Curve, Compound
-- **Tier 2 DAOs** (80 pts/vote): Arbitrum, Optimism, Stargate, Polygon
-- **Tier 3-5 DAOs** (40-60 pts/vote): Lido, ENS, Gitcoin, 1inch, etc.
+**市面上所谓的"AI分析"**：提取关键词、生成一段废话总结
 
-**Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon
-**Roadmap**: Base, zkSync, Avalanche, BSC (Q2 2026)
+**VoteNow的AI Governance Agent**：
 
-#### 2. AI-Powered Proposal Analysis
-**Technology**: DeepSeek API (OpenAI-compatible)
+| 功能 | 具体价值 | 示例 |
+|------|---------|------|
+| **个性化策略匹配** | 根据用户持仓和风险偏好，给出针对性建议 | "你持有大量ETH，这个提案会增加ETH质押收益，匹配度85%" |
+| **风险分级** | Low/Medium/High/Critical四级风险，附带技术解释 | "该提案涉及合约升级，审计报告缺失，风险等级：High" |
+| **安全扫描** | 自动检查合约地址、资金影响、治理攻击风险 | "提案要求转移500万USDC到多签钱包，目标地址已验证：Arbitrum Treasury" |
+| **策略建议** | For/Against/Abstain + 理由 | "建议投For：该提案与保守型增长策略一致，风险可控" |
+| **对话式研究** | 用户可以追问"这个提案对Aave有什么影响？" | 基于提案全文进行RAG问答 |
 
-**Analysis Features**:
-- **Risk Assessment**: Low/Medium/High/Critical ratings
-- **Strategy Matching**: 0-100 score vs user's investment strategy (Conservative/Balanced/Aggressive)
-- **Security Checks**: Contract scan, treasury impact, governance integrity
-- **Recommendation**: For/Against/Abstain with reasoning
-- **Executive Summary**: 2-sentence digestible overview
-- **Chat Assistant**: Ask questions about any proposal in context
+### 2.2 AI技术栈
 
-**Sample Output**:
-```json
-{
-  "summary": "Proposes 5% APY increase for stETH. Low execution risk.",
-  "riskLevel": "Low",
-  "strategyMatchScore": 85,
-  "recommendation": "For",
-  "securityChecks": [
-    {"name": "Contract Scan", "status": "pass"},
-    {"name": "Treasury Impact", "status": "warning", "details": "$2M allocation"}
-  ]
-}
+- **模型**：DeepSeek R1（推理能力接近GPT-4，成本只有1/20）
+- **上下文**：32K tokens，可以消化完整提案文本
+- **输出**：结构化JSON，包含所有分析维度
+- **延迟**：3-5秒完成一次完整分析
+- **成本**：$0.27/百万tokens（GPT-4是$5/百万）
+
+### 2.3 AI的飞轮效应
+
+```
+更多用户投票 → 更多提案分析数据 → AI模型更懂治理 → 更好的建议 → 更多用户
 ```
 
-#### 3. Gamified Points & Rewards System
-
-**Points Earning**:
-- Base Points: 40-100 per vote (tier-based)
-- Early Vote Bonus: +20% (within 24 hours)
-- Streak Bonus: +5% per consecutive day (max 50%)
-- Referral Bonus: 100 points per invited user
-
-**User Levels**:
-| Level | Points Required | Title | Perks |
-|-------|----------------|-------|-------|
-| 1 | 0 | Newcomer | - |
-| 2 | 500 | Voter | Leaderboard badge |
-| 3 | 2,000 | Delegate | 10% point boost |
-| 4 | 5,000 | Governor | Priority support |
-| 5 | 10,000 | Council | Early reward access |
-| 6 | 25,000 | DAO Legend | Exclusive NFTs, governance power |
-
-**Rewards Catalog**:
-- **Tokens**: 10 USDC (1,000 pts), 50 USDC (4,500 pts), 5 ARB (500 pts)
-- **NFTs**: Bronze/Silver/Gold Governance Badges (2K-15K pts)
-- **Benefits**: Gas vouchers (300 pts), premium membership (1,500 pts)
-
-#### 4. Real Snapshot Voting
-**Integration**: @snapshot-labs/snapshot.js + ethers.js
-
-**Voting Flow**:
-1. User connects wallet (wagmi + viem)
-2. Selects proposal choice
-3. MetaMask prompts EIP-712 signature (off-chain, no gas)
-4. Vote submitted to Snapshot hub
-5. Points instantly awarded
-
-**Features**:
-- Voting power query (user's token balance at snapshot block)
-- Existing vote detection (prevents double-voting)
-- Vote verification (on-chain proof)
-
-#### 5. Social & Engagement
-- **Leaderboard**: Top 100 voters by total points
-- **Telegram Bot**: Notifications for new proposals (grammy framework)
-- **Referral System**: Share link, earn points when friends vote
-- **DAO Activity Feed**: Real-time vote events
+**数据壁垒**：6个月的提案分析数据会让我们比任何后来者都更懂DAO治理模式
 
 ---
 
-## Technology Stack
+## 三、数据来源：100%真实，直连链上
 
-### Frontend
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Framework | React 19 + Vite 6 | Fast SPA with hot reload |
-| Styling | Tailwind CSS | Responsive, accessible UI |
-| Charts | Recharts | Proposal analytics, leaderboard graphs |
-| Web3 | wagmi 2 + viem 2 | Wallet connection, multi-chain support |
-| Snapshot | @snapshot-labs/snapshot.js | Off-chain voting |
+### 3.1 数据从哪里来？
 
-### Backend
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| API | Hono (Node.js) | Fast edge-compatible API framework |
-| Language | TypeScript | Type safety, better DX |
-| Storage | In-memory (MVP) → PostgreSQL + Redis (Prod) | User points, votes, rewards |
-| Testing | Vitest | 75 tests across 7 modules |
+**不是爬虫，是官方API直连：**
 
-### Web3 Infrastructure
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Voting | Snapshot GraphQL API | Fetch proposals, submit votes |
-| Signatures | EIP-712 | Off-chain vote signing |
-| Chains | Ethereum, Arbitrum, Optimism, Polygon | Multi-chain DAO support |
-| RPC | Alchemy/Infura | Blockchain data queries |
-| Wallet | MetaMask, WalletConnect | User authentication |
+| 数据源 | 获取方式 | 实时性 | 可靠性 |
+|--------|---------|--------|--------|
+| **提案数据** | Snapshot GraphQL API | 实时 | Snapshot是行业标准，Uniswap/Aave等都用它 |
+| **投票权力** | 链上RPC调用（Alchemy/Infura） | 实时 | 读取用户token余额，决定投票权重 |
+| **投票提交** | EIP-712签名 + Snapshot Hub | 实时 | 签名直接提交到Snapshot官方节点 |
+| **用户积分** | 自建数据库（PostgreSQL） | 实时 | 投票成功后即时发放 |
 
-### AI Stack
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| LLM | DeepSeek (R1/Chat) | Proposal analysis, chat assistant |
-| API | OpenAI SDK (compatible) | Unified interface |
-| Prompting | Chain-of-thought, JSON mode | Structured analysis output |
-| Context | 32K tokens | Analyze full proposal text |
-| Features | Risk scoring, strategy matching, security audit | Decision support |
+### 3.2 为什么大家能在这里Vote？
 
-**AI Differentiation**:
-- **Cost**: DeepSeek is 10-20x cheaper than GPT-4 ($0.27/M tokens vs $5/M)
-- **Speed**: 30 tokens/sec, 3-5s for full analysis
-- **Quality**: Comparable to GPT-4 on reasoning tasks (MMLU 89.5%)
-- **Privacy**: Self-hosted option available (future)
+**我们不是"替代"Snapshot，而是"增强"Snapshot：**
+
+1. **Snapshot是基础设施**：所有投票数据存储在Snapshot Hub
+2. **VoteNow是客户端**：我们提供更好用的界面 + AI分析 + 激励层
+3. **投票流程**：
+   - 用户在VoteNow选择投票选项
+   - 生成EIP-712结构化消息
+   - 用户用MetaMask签名（off-chain，无gas费）
+   - 签名提交到Snapshot Hub（hub.snapshot.org）
+   - Snapshot验证签名并记录投票
+   - 投票结果在Snapshot官方页面可见
+
+**换句话说**：在VoteNow投票 = 在Snapshot投票，只是体验更好。
 
 ---
 
-## Market Analysis
+## 四、用户为什么来？真实的痛点
 
-### Target Audiences
+### 4.1 目标用户
 
-#### 1. Passive Token Holders (Primary)
-**Size**: 12M+ users holding governance tokens
-**Pain Points**:
-- Own tokens but never voted (90%+ of holders)
-- Don't know when/where proposals happen
-- Don't understand complex governance proposals
-- No immediate incentive to participate
+**主要用户：被动型Token Holder（90%的市场）**
+- 持有UNI/AAVE/ARB等治理代币，但从没投过票
+- 原因：不知道有提案、看不懂提案、懒得研究
+- VoteNow解决：推送通知 + AI解读 + 投票赚积分
 
-**VoteNow Solution**:
-- One dashboard for all their DAOs
-- AI explains every proposal in plain English
-- Earn rewards (USDC, NFTs) for participating
+**次要用户：活跃治理参与者（10%的市场）**
+- 已经在参与治理，但管理5-10个DAO很崩溃
+- VoteNow解决：统一仪表板，节省10小时/月研究时间
 
-#### 2. Active DAO Contributors (Secondary)
-**Size**: 500K+ engaged governance participants
-**Pain Points**:
-- Managing votes across 5-10 DAOs manually
-- Spending hours researching each proposal
-- Switching between Discord, forums, Snapshot
+### 4.2 真实使用场景
 
-**VoteNow Solution**:
-- Unified workflow, save 10+ hours/month
-- AI research assistant for quick due diligence
-- Points boost for being power users
+**场景1：小明持有UNI，但从没投票**
+1. 连接钱包，VoteNow自动识别他持有UNI
+2. 发现Uniswap有新提案，Telegram bot推送通知
+3. 打开App，AI总结："建议投For，该提案将增加LP手续费分成，对你有利"
+4. 一键投票，获得100积分
+5. 积分攒够1000，兑换10 USDC
 
-#### 3. Governance Delegates (Tertiary)
-**Size**: 50K+ professional delegates
-**Pain Points**:
-- Managing votes for 100+ delegators
-- Providing transparent reasoning for votes
-- Building reputation across DAOs
-
-**VoteNow Solution**:
-- Delegate dashboard (roadmap)
-- Auto-generate vote rationales with AI
-- Leaderboard establishes credibility
-
-### Competitive Landscape
-
-| Competitor | Strengths | Weaknesses | VoteNow Advantage |
-|------------|-----------|------------|-------------------|
-| **Snapshot** | Industry standard, trusted | No aggregation, no analysis, no rewards | Multi-DAO view + AI + gamification |
-| **Tally** | On-chain governance focus | Only on-chain (misses 80% of votes), no AI | Snapshot support + AI insights |
-| **Boardroom** | Good DAO data aggregation | No voting, no rewards, outdated UI | Native voting + rewards system |
-| **DeepDAO** | Comprehensive DAO analytics | Analytics-only, no participation tools | Integrated voting flow |
-| **Karma** | Delegate reputation scoring | Delegate-focused, not retail-friendly | Points system for all users |
-
-**Unique Positioning**:
-"The only platform that lets you vote on 50+ DAOs in one click, get AI recommendations, and earn real rewards."
-
-### Market Trends
-
-1. **DAO Growth**: 15,000+ DAOs created (2024), up from 3,000 (2022)
-2. **Treasury Expansion**: Top 50 DAOs control $25B+ (3x from 2023)
-3. **Governance as a Service**: Emerging category (delegation, tooling, analytics)
-4. **AI in Web3**: 60% of protocols exploring AI integration (2025 survey)
-5. **Gamification**: Points/rewards systems driving 40% higher engagement (see friend.tech, Blast)
+**场景2：老王是治理活跃分子**
+1. 每天早上打开VoteNow，看到所有关注DAO的新提案
+2. AI分析帮他快速筛选：3个低风险值得投，2个高风险需要仔细看
+3. 批量投票，节省研究时间
+4. 排行榜上排名第一，获得"治理之王"NFT
 
 ---
 
-## Business Model
+## 五、不仅仅是投票：DeFi + DID + 空投的基础设施
 
-### Revenue Streams
+### 5.1 我们积累的资产：用户行为数据
 
-#### 1. Platform Fees (Primary - Launch Q3 2026)
-**Model**: 5% fee on reward redemptions
-- User redeems 1,000 points → 10 USDC reward
-- Platform keeps 0.5 USDC (5%)
-- **Projected Revenue**: $50K/month @ 10K active users (assuming 50% redeem monthly)
+每投一票，我们记录：
+- 用户钱包地址
+- 投票的DAO和提案
+- 投票选择（For/Against/Abstain）
+- 投票时间、链、gas费用
+- 用户持仓快照
 
-#### 2. Premium Subscriptions (Secondary - Q4 2026)
-**Tiers**:
-- **Free**: 20 DAOs, basic AI analysis, 100 pts/month cap
-- **Pro ($9/month)**: 50 DAOs, advanced AI chat, 500 pts/month cap, priority support
-- **Delegate ($49/month)**: Unlimited DAOs, bulk voting, custom strategies, analytics dashboard
+**这等于什么？**
+= 用户的链上治理简历
+= 真实的Web3参与度证明
+= 比单纯持有代币更有价值的DID数据
 
-**Projected Revenue**: $30K/month @ 1K Pro + 100 Delegate users
+### 5.2 数据应用场景
 
-#### 3. DAO Partnership Grants (Current - Pilot)
-**Model**: DAOs pay VoteNow to boost their proposal visibility
-- Featured placement in feed ($1K-5K per proposal)
-- Targeted notifications to high-level voters
-- Custom AI analysis aligned with DAO's messaging
+#### A. DeFi积分/空投凭证
+未来项目方空投不再只看"你有多少币"，而是看"你有没有参与过治理"。
 
-**Pilot Partners**: Targeting Arbitrum DAO, Gitcoin, Optimism Collective
-**Projected Revenue**: $20K/month @ 5 partners
+VoteNow可以：
+- 为用户生成"治理分数"（类似芝麻信用）
+- 项目方用我们的API查询真实参与者
+- 我们成为"治理即服务"(Governance-as-a-Service)基础设施
 
-#### 4. Data & Analytics API (Future - 2027)
-**Model**: Sell aggregated governance data to:
-- DAO tooling companies (Tally, Boardroom)
-- Research firms (Messari, Delphi Digital)
-- Institutional investors
+#### B. DID身份层
+- 投票记录 = 链上信用历史
+- 高参与度用户 = 优质Web3公民
+- 可以用于：无抵押借贷、DAO入职、白名单筛选
 
-**Pricing**: $500-5K/month per customer
-**Projected Revenue**: $15K/month @ 10 customers
+#### C. 定制化空投
+项目方可以通过我们：
+- 向"参与过Aave治理的用户"空投
+- 向"总是投For的积极用户"空投
+- 向"治理分数>80的用户"空投
 
-#### 5. Affiliate & Referrals (Passive)
-**Partnerships**:
-- Wallet providers (MetaMask, Rabby): $5 per new voter
-- DeFi protocols: Earn APY boost for voters (e.g., Aave stakers)
+### 5.3 为什么不局限于这几个DAO？
 
-**Projected Revenue**: $5K/month
+**当前**：20个主流DAO（Aave、Uniswap、Arbitrum等）
+**未来**：
+- **所有使用Snapshot的DAO**（已经有5000+个空间）
+- **所有使用Tally的链上治理**（Compound、Uniswap Governor）
+- **所有新链**：Base、zkSync、Linea、Scroll
+- **超越DeFi**：游戏DAO、社交DAO、内容DAO
 
-### Unit Economics (Year 1 Projections)
-
-**Assumptions**:
-- 10,000 monthly active voters
-- Average 5 votes per user per month
-- 50% redemption rate
-- $2 value per 1,000 points (market rate)
-
-**Revenue**:
-- Platform fees: $50K (5% of $1M redemptions)
-- Subscriptions: $30K (1,100 paid users)
-- DAO grants: $20K (5 partners)
-- Total: $100K/month = $1.2M/year
-
-**Costs**:
-- Rewards pool: $950K/year (user payouts)
-- Engineering: $240K (2 full-time devs)
-- AI API: $12K (DeepSeek at scale)
-- Infrastructure: $24K (hosting, RPC)
-- Marketing: $120K
-- Total: $1.35M/year
-
-**Year 1 Net**: -$150K (expected for growth phase)
-
-**Break-even**: Year 2 at 30K MAU
+**市场规模不是"20个DAO"，而是整个Web3治理层。**
 
 ---
 
-## Go-to-Market Strategy
+## 六、竞争分析：对标是谁？为什么我们更好？
 
-### Phase 1: Community Launch (Q2 2026)
-**Goal**: 1,000 early adopters, validate product-market fit
+### 6.1 直接竞品
 
-**Tactics**:
-1. **DAO Forum Campaigns**: Post on Aave, Uniswap, Arbitrum governance forums
-   - Offer: "Vote on our DAO + 5 others, earn rewards"
-   - Incentive: 2x points for early users (limited time)
+| 竞品 | 他们是什么 | 他们的弱点 | 我们的优势 |
+|------|-----------|-----------|-----------|
+| **Snapshot** | 治理基础设施（我们依赖它） | 只有一个一个DAO看，没聚合，没AI，没激励 | 在Snapshot之上做聚合层 + 价值增值 |
+| **Tally** | 链上治理聚合 | 只支持链上治理（错过80%的Snapshot投票），界面老旧，没AI | 支持Snapshot + AI分析 + 激励 |
+| **Boardroom** | 治理聚合器 | 只能看，不能投，没奖励，数据滞后 | 原生投票 + 即时激励 |
+| **DeepDAO** | DAO数据分析 | 纯数据展示，没参与工具 | 参与导向，投票即可赚 |
+| **Karma** | 委托代理评分 | 只服务委托人，普通用户用不上 | 面向所有持币者，积分系统 |
 
-2. **Twitter/X KOL Partnerships**: Partner with 10 governance influencers
-   - Reach: 50K-200K followers each
-   - Offer: Custom referral codes, affiliate revenue share
+### 6.2 为什么我们比他们好？
 
-3. **Snapshot Integration**: Get listed in Snapshot's "Recommended Tools"
-   - Traffic: 50K+ monthly governance voters see VoteNow
+**唯一一个同时具备以下三者的产品：**
+1. ✅ 多链多DAO聚合（覆盖90%的主流治理）
+2. ✅ AI驱动的决策支持（不是简单的总结）
+3. ✅ 即时激励机制（积分可兑换真实价值）
 
-4. **Airdrop for Power Voters**:
-   - Snapshot wallet addresses with 10+ votes in 2025
-   - Airdrop: 500 points + Gold NFT badge
-   - Target: 5,000 wallets = instant credibility
+**技术壁垒**：
+- 6个月的AI提示工程优化数据
+- 多链RPC基础设施（成本高，我们有优化方案）
+- 用户数据飞轮（越多用户 = 更好的AI = 更多用户）
 
-### Phase 2: Scale with Grants (Q3 2026)
-**Goal**: 10,000 MAU, secure 5 DAO partnerships
+### 6.3 如果Snapshot/Tally抄袭我们怎么办？
 
-**Tactics**:
-1. **Apply for DAO Grants**: Submit proposals to 10 DAOs
-   - Arbitrum: $200K grants for governance tools
-   - Optimism: RetroPGF (public goods funding)
-   - Gitcoin: Community rounds
-   - Pitch: "Increase your voter turnout by 50%"
+**Snapshot的定位**：基础设施，不做增值层（他们明确说过）
+**Tally的问题**：技术债务重，移动端差，没AI基因
 
-2. **Paid Marketing**:
-   - Twitter Ads: Target followers of @SnapshotLabs, @vitalik.eth
-   - Google Search: "DAO voting", "Snapshot alternative"
-   - Budget: $50K for 6 months
-
-3. **Referral Program**:
-   - Give 100 points to referrer + referee
-   - Viral loop: Each user brings 1.5 friends (40% viral coefficient)
-
-### Phase 3: Mainstream Expansion (Q4 2026)
-**Goal**: 50,000 MAU, become #1 governance aggregator
-
-**Tactics**:
-1. **Mobile App**: iOS + Android (React Native)
-   - Push notifications for new proposals
-   - Biometric wallet login (no seed phrases)
-
-2. **Institutional Partnerships**:
-   - Integrate with Coinbase Wallet, MetaMask
-   - Pre-install VoteNow in wallet dApps browser
-
-3. **Educational Content**:
-   - YouTube series: "DAO Proposal Breakdown" (partner with Bankless)
-   - Blog: SEO-optimized guides (e.g., "How to Vote on Uniswap")
+**我们的护城河**：
+1. **先发优势**：最快积累用户和治理数据
+2. **AI数据飞轮**：我们的AI会越来越懂治理
+3. **社区粘性**：积分系统 + 排行榜 = 用户不愿离开
+4. **品牌**：成为"治理"的代名词（就像MetaMask是钱包的代名词）
 
 ---
 
-## Competitive Advantages
+## 七、商业模式：怎么赚钱？
 
-### 1. AI-First Approach
-**Moat**: Proprietary prompt engineering + user strategy profiles
-- Competitors: Basic proposal summaries (if any)
-- VoteNow: Personalized risk/reward analysis, chat-based research
+### 7.1 收入来源
 
-**Barrier to Entry**:
-- 6 months of prompt tuning for governance-specific use cases
-- User strategy data (Conservative/Balanced/Aggressive) → better recommendations over time
+| 收入类型 | 模式 | 预估占比 | 时间点 |
+|----------|------|---------|--------|
+| **积分兑换手续费** | 用户用积分兑换USDC/NFT时收5%手续费 | 40% | Q3 2026 |
+| **高级订阅** | Pro版$9/月：更多DAO、高级AI、优先支持 | 30% | Q4 2026 |
+| **DAO付费推广** | DAO付费让更多用户看到他们的提案 | 20% | Q3 2026 |
+| **数据API** | 向项目方提供治理数据查询服务 | 10% | 2027 |
 
-### 2. Gamification & Rewards
-**Moat**: Liquidity pool for rewards (USDC, tokens, NFTs)
-- Competitors: No direct incentives (only protocol alignment)
-- VoteNow: Immediate gratification → higher retention
+### 7.2 成本结构
 
-**Network Effects**:
-- More voters → larger rewards pool → attracts more voters
-- Leaderboard prestige → social proof → community growth
+| 成本类型 | 年度成本（1万MAU） | 说明 |
+|----------|-------------------|------|
+| **用户激励** | $950K | 积分兑换的USDC/NFT |
+| **开发** | $240K | 2个全栈工程师 |
+| **AI API** | $12K | DeepSeek，成本极低 |
+| **基础设施** | $24K | RPC、服务器、数据库 |
+| **营销** | $120K | KOL、广告投放 |
 
-### 3. Multi-Chain from Day 1
-**Moat**: 20+ DAOs across 4 chains (live MVP)
-- Competitors: Single-chain focus (e.g., Tally = Ethereum only)
-- VoteNow: Full Web3 ecosystem coverage
-
-**Scalability**: Architecture designed for 100+ DAOs, 20+ chains
-
-### 4. Developer-Friendly Architecture
-**Open Source Strategy** (Planned Q3 2026):
-- Frontend components → Community builds integrations (e.g., Discord bots)
-- API → Third-party apps can build on VoteNow data
-- Skills framework → AI agents can trigger votes
-
-**Community Contributions**:
-- DAO-specific analysis modules (e.g., Curve specialist)
-- New reward integrations (e.g., NFT marketplaces)
+**获客成本（CAC）**：$15/用户（通过积分激励）
+**用户终身价值（LTV）**：$50/用户（手续费+订阅）
+**LTV/CAC = 3.3x**（健康的SaaS比例）
 
 ---
 
-## Product Roadmap
+## 八、未来三年路线图
 
-### Q2 2026 (Current - MVP Launch)
-- ✅ 20 DAOs across 4 chains
-- ✅ AI-powered proposal analysis
-- ✅ Points & rewards system (9 items)
-- ✅ Real Snapshot voting
-- ✅ Leaderboard & user profiles
-- 🔄 Telegram bot (90% done)
-- 🔄 Referral system
+### Phase 1: 基础层（2026 Q2-Q3）
+- 50+ DAO，10+链
+- 10,000 MAU
+- 移动端App
+- 第一个DAO付费合作伙伴
 
-### Q3 2026 (Scale)
-- [ ] 50 DAOs (add Base, zkSync, Avalanche)
-- [ ] On-chain voting (Governor contracts)
-- [ ] Mobile app (iOS + Android)
-- [ ] Advanced analytics dashboard
-- [ ] Delegate profiles & tracking
-- [ ] Multi-language support (Mandarin, Spanish)
-- [ ] DAO grant applications (Arbitrum, Optimism)
+### Phase 2: 生态层（2026 Q4-2027 Q2）
+- 200+ DAO
+- 100,000 MAU
+- 推出"治理分数"（Governance Score）- 用户的链上治理信用
+- 与3个DeFi协议合作，使用我们的治理分数进行空投
+- 开放API，第三方应用集成
 
-### Q4 2026 (Monetization)
-- [ ] Premium subscriptions launch
-- [ ] Platform fees (5% on redemptions)
-- [ ] Sponsored proposals (DAO partnerships)
-- [ ] Custom user strategies (DeFi, NFT, Social DAOs)
-- [ ] Bulk voting for delegates
-- [ ] White-label solution for DAOs
+### Phase 3: 协议层（2027 Q3-2028）
+- 1,000,000 MAU
+- 推出$VOTE代币（可选，视监管环境）
+- 成为DeFi+DAO的默认治理基础设施
+- 探索链上治理即服务（Governance-as-a-Service）
+- 企业级产品：为机构提供治理代理服务
 
-### 2027 (Expansion)
-- [ ] 200+ DAOs
-- [ ] AI-powered vote delegation ("auto-vote based on my strategy")
-- [ ] Governance data API (B2B product)
-- [ ] VoteNow DAO launch (community governance)
-- [ ] Vote escrow (veVOTE) tokenomics
-- [ ] Cross-DAO proposal aggregation (e.g., "Vote on all DeFi DAOs at once")
+### 8.1 长期愿景：治理层的基础设施
 
----
+**不只是投票工具，而是：**
+1. **治理数据层**：最全的DAO治理数据库
+2. **信用层**：用户的链上治理简历（DID）
+3. **激励层**：连接项目方和真实用户的桥梁
+4. **AI层**：每个DAO的治理副驾驶
 
-## Financial Projections
-
-### Key Assumptions
-- **User Growth**: 1K (Q2) → 10K (Q3) → 50K (Q4) → 200K (2027)
-- **Engagement**: 5 votes/user/month average
-- **Redemption Rate**: 50% of earned points redeemed
-- **Platform Fee**: 5% on all redemptions
-- **Premium Conversion**: 10% of active users
-
-### Revenue Forecast (3 Years)
-
-| Metric | 2026 (6mo) | 2027 | 2028 |
-|--------|-----------|------|------|
-| **Monthly Active Users** | 10,000 | 100,000 | 500,000 |
-| **Platform Fees** | $150K | $2.4M | $15M |
-| **Subscriptions** | $90K | $1.2M | $6M |
-| **DAO Grants** | $60K | $500K | $1M |
-| **Affiliate Revenue** | $15K | $200K | $800K |
-| **Total Revenue** | $315K | $4.3M | $22.8M |
-
-### Cost Structure
-
-| Category | 2026 | 2027 | 2028 |
-|----------|------|------|------|
-| **Engineering (4 → 8 → 15 devs)** | $240K | $960K | $2.25M |
-| **Rewards Pool** | $950K | $3M | $8M |
-| **AI API Costs** | $12K | $120K | $600K |
-| **Infrastructure** | $24K | $200K | $800K |
-| **Marketing** | $120K | $600K | $2M |
-| **Operations** | $50K | $300K | $1M |
-| **Total Costs** | $1.4M | $5.18M | $14.65M |
-
-### Profitability
-
-| Metric | 2026 | 2027 | 2028 |
-|--------|------|------|------|
-| **Revenue** | $315K | $4.3M | $22.8M |
-| **Costs** | $1.4M | $5.18M | $14.65M |
-| **Net Profit** | -$1.1M | -$880K | +$8.15M |
-| **Cash Burn Rate** | $183K/mo | $73K/mo | Profitable |
-
-**Break-even**: Q2 2028 at 350K MAU
+**类比：**
+- Uniswap = 交易的基础设施
+- Aave = 借贷的基础设施
+- VoteNow = 治理的基础设施
 
 ---
 
-## Risk Analysis & Mitigation
+## 九、融资需求：$500K种子轮
 
-### Technical Risks
+### 9.1 资金用途
 
-#### 1. Snapshot API Reliability
-**Risk**: Snapshot goes down, voting fails
-**Mitigation**:
-- Cache proposals locally (24hr sync)
-- Fallback to direct GraphQL queries
-- On-chain voting as backup (Governor contracts)
+| 用途 | 金额 | 占比 | 具体用途 |
+|------|------|------|---------|
+| **用户激励** | $150K | 30% | 前10,000用户的积分奖励池 |
+| **产品开发** | $200K | 40% | 2个工程师12个月 |
+| **市场推广** | $100K | 20% | KOL合作、DAO论坛营销 |
+| **运营** | $50K | 10% | 法律、基础设施、杂费 |
 
-#### 2. AI Hallucination/Bias
-**Risk**: DeepSeek gives wrong analysis, users vote incorrectly
-**Mitigation**:
-- Disclaimer: "AI is advisory only, DYOR"
-- Human review for high-stakes proposals (>$10M impact)
-- Community flagging system (report bad analysis)
-- A/B test AI models (DeepSeek vs GPT-4)
+### 9.2 里程碑
 
-#### 3. Smart Contract Exploits (Future On-Chain Voting)
-**Risk**: Vote transaction drains user wallet
-**Mitigation**:
-- Audits by Trail of Bits, OpenZeppelin
-- Bug bounty program ($50K-500K)
-- Transaction simulation before signing (Tenderly)
+**6个月目标**：
+- 50个DAO集成
+- 10,000 MAU
+- $10K MRR（来自手续费）
 
-### Business Risks
-
-#### 1. Low User Adoption
-**Risk**: Users don't care about governance, points not motivating
-**Mitigation**:
-- Pivot rewards to higher-value items (e.g., exclusive NFTs, token airdrops)
-- Partner with DAOs for co-marketing (e.g., Uniswap endorsement)
-- Add social features (vote with friends, DAO clubs)
-
-#### 2. Regulatory Uncertainty
-**Risk**: SEC classifies governance tokens as securities, restricts voting
-**Mitigation**:
-- Legal counsel (crypto-native law firm)
-- No custody of user funds (non-custodial rewards)
-- Geofence US users if needed (VPN detection)
-
-#### 3. Competitor Copy
-**Risk**: Snapshot/Tally adds AI + rewards features
-**Mitigation**:
-- Build brand loyalty (community-first, DAO governance)
-- Network effects (more users = better AI training data)
-- Move faster (ship new DAOs weekly)
-
-### Market Risks
-
-#### 1. Crypto Bear Market
-**Risk**: DAO participation drops, revenue falls
-**Mitigation**:
-- Diversify revenue (grants, subscriptions, not just fees)
-- Focus on high-conviction DAOs (Ethereum, Uniswap)
-- Cut costs (AI efficiency, fewer hires)
-
-#### 2. DAO Governance Centralization
-**Risk**: DAOs move to foundation-led governance (less voting)
-**Mitigation**:
-- Target permissionless DAOs (DeFi, not corporate)
-- Offer delegate services (institutions vote for users)
-- Expand to other use cases (community polls, DAOs beyond crypto)
+**12个月目标**：
+- 200个DAO
+- 50,000 MAU
+- $50K MRR
+- 3个DAO付费合作伙伴
 
 ---
 
-## Team & Advisors
+## 十、风险与应对
 
-### Founding Team (Recommended Hires)
+### 10.1 主要风险
 
-#### CEO/Co-Founder (Product & Strategy)
-**Background**: Ex-governance lead at major DAO (Uniswap, Compound)
-**Skills**: Community building, tokenomics, fundraising
-
-#### CTO/Co-Founder (Engineering)
-**Background**: Senior engineer at Web3 company (Coinbase, Alchemy)
-**Skills**: Full-stack TypeScript, smart contracts (Solidity), scalability
-
-#### Head of AI (Advisory/Part-Time)
-**Background**: ML engineer at AI lab (OpenAI, Anthropic, DeepMind)
-**Skills**: LLM fine-tuning, prompt engineering, evaluation
-
-### Advisors (Target List)
-
-1. **Governance Expert**: Former Snapshot founder/core team
-2. **DAO Operator**: Gitcoin/MolochDAO/MetaCartel lead
-3. **AI Researcher**: Stanford/MIT professor specializing in LLMs
-4. **Crypto VC**: Partner at Paradigm, a16z, or Dragonfly
+| 风险 | 可能性 | 影响 | 应对 |
+|------|--------|------|------|
+| **Snapshot关闭API** | 低 | 高 | 我们可以切换到直接读取链上事件 |
+| **AI分析出错导致用户损失** | 中 | 高 | 免责声明+社区标记+人工审核高价值提案 |
+| **竞争对手烧钱补贴** | 中 | 中 | 专注产品体验和AI质量，不陷入价格战 |
+| **监管将积分视为证券** | 低 | 高 | 法律咨询+积分仅用于兑换非金融产品 |
+| **DAO治理热情下降** | 低 | 高 | 扩展到其他投票场景（社区决策、内容审核） |
 
 ---
 
-## Funding & Use of Funds
+## 十一、结语：为什么是现在？为什么是我们？
 
-### Seed Round: $500K (Q2 2026)
-**Valuation**: $3M post-money (negotiable)
-**Investors**: Crypto VCs (Dragonfly, Lattice, 1kx), angel investors
+### 11.1 为什么是现在？
 
-### Use of Funds (12-month runway)
+1. **AI成熟**：2024年LLM突破，让机器能读懂复杂治理提案
+2. **DAO爆发**：15,000+个DAO，$25B+金库，但参与率<5%
+3. **积分模式验证**：Friend.tech、Blast、EigenLayer证明积分能驱动用户行为
+4. **多链时代**：用户资产分散在10+链，需要统一治理界面
 
-| Category | Amount | % | Purpose |
-|----------|--------|---|---------|
-| **Engineering** | $200K | 40% | 2 full-time devs (mobile app, 50 DAOs, on-chain voting) |
-| **Rewards Pool** | $150K | 30% | Bootstrap user acquisition (10K users @ $15 lifetime value) |
-| **Marketing** | $100K | 20% | Influencer partnerships, Twitter ads, DAO grants outreach |
-| **Operations** | $50K | 10% | Legal, accounting, infrastructure (AWS, Alchemy RPC) |
+### 11.2 为什么是我们？
 
-### Milestones to Unlock Funding
+1. **产品已完成**：MVP已上线，20个DAO，真实投票，AI分析
+2. **技术栈先进**：React 19 + Vite + DeepSeek + wagmi，架构可扩展
+3. **先发优势**：市场上还没有"AI+聚合+激励"三位一体的竞品
+4. **成本优势**：DeepSeek让AI成本降到可规模化
 
-**Tranche 1 ($250K)**: Upon signing
-- Deliverable: 50 DAOs, mobile app beta, 1K MAU
+### 11.3 我们的北极星指标
 
-**Tranche 2 ($250K)**: After 6 months
-- Deliverable: 10K MAU, $50K MRR, 1 DAO partnership
+**不是MAU，不是收入，而是："
+> 让1000万token holder从"从不投票"变成"积极治理参与者"
 
----
-
-## Conclusion
-
-VoteNow is positioned to become the **Robinhood of DAO governance** — making participation accessible, rewarding, and intelligent for millions of token holders.
-
-### Why Now?
-1. **Governance is broken**: <5% turnout despite $25B+ in DAO treasuries
-2. **AI is mature**: LLMs can now parse complex proposals (2024 breakthrough)
-3. **Points systems work**: Proven retention (friend.tech, Blast, EigenLayer)
-
-### Why Us?
-1. **Working MVP**: 20 DAOs, real voting, AI analysis, 75 tests passing
-2. **Technical Moat**: Multi-chain + AI + gamification (no competitor has all 3)
-3. **Timing**: First mover in "governance-as-a-service" category
-
-### The Ask
-$500K to scale from 1K → 50K users in 12 months, proving out the business model and securing DAO partnerships.
+我们相信，更好的治理 = 更好的协议 = 更好的Web3。
 
 ---
 
-## Appendix
-
-### Tech Architecture Diagram
-```
-┌─────────────┐
-│   Users     │ (MetaMask, WalletConnect)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│         Frontend (React + Vite)         │
-│  - Dashboard, ProposalDetail, VoteButton│
-│  - wagmi/viem (wallet), Recharts (viz)  │
-└──────┬──────────────────────────────────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│       Backend API (Hono/Node.js)        │
-│  Routes:                                │
-│  - /api/proposals (fetch from Snapshot) │
-│  - /api/vote (submit + award points)    │
-│  - /api/analysis (AI call to DeepSeek)  │
-│  - /api/rewards (catalog + redemption)  │
-└──────┬──────────────┬──────────────┬────┘
-       │              │              │
-       ▼              ▼              ▼
-┌───────────┐  ┌────────────┐  ┌──────────┐
-│ Snapshot  │  │  DeepSeek  │  │PostgreSQL│
-│  GraphQL  │  │   AI API   │  │   (DB)   │
-│   Hub     │  │  (Analysis)│  │ (Points, │
-│ (Voting)  │  │            │  │  Votes)  │
-└───────────┘  └────────────┘  └──────────┘
-```
-
-### AI Prompting Strategy
-```
-System: "You are VoteNow, an autonomous DAO Governance Agent."
-User Strategy: "Conservative Growth, holds significant ETH"
-
-Proposal: [Full proposal text, max 4,000 chars]
-
-Output JSON:
-{
-  "summary": "...",
-  "riskLevel": "Low|Medium|High|Critical",
-  "strategyMatchScore": 0-100,
-  "recommendation": "For|Against|Abstain",
-  "securityChecks": [...],
-  "keyPoints": [...]
-}
-```
-
-### Rewards Pool Economics
-**Bootstrap Phase** (Year 1):
-- 1M points distributed = $2,000 in USDC redemptions (at 500 pts = $1 rate)
-- Platform takes 5% fee = $100
-- Net cost: $1,900 (customer acquisition cost)
-- If LTV = $5/user (from fees + subs), ROI = 2.6x
-
-**Steady State** (Year 3):
-- 100M points distributed = $200K in redemptions
-- Platform fee = $10K
-- Net cost: $190K/month
-- Revenue from same cohort: $300K (fees + subs)
-- **Profitable**: $110K margin
-
----
-
-**Contact**: [Your Email]
-**Demo**: https://votenow.app (placeholder)
-**Deck**: [Link to pitch deck]
+**联系**：[Your Email]
+**Demo**：[App Link]
+**代码**：[GitHub Link]
