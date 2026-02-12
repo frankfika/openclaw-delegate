@@ -6,6 +6,7 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { getTrackedSpaceIds } from '../../shared/config';
 
 const app = new Hono();
 
@@ -40,12 +41,17 @@ app.get('/api/proposals', async (c) => {
   try {
     const SNAPSHOT_API = 'https://hub.snapshot.org/graphql';
 
-    // Query for active proposals from all DAOs (no filtering)
+    // Only fetch proposals from configured DAOs
+    const trackedSpaces = getTrackedSpaceIds();
+
     const query = `
       query {
         proposals(
           first: 100,
           skip: 0,
+          where: {
+            space_in: ${JSON.stringify(trackedSpaces)}
+          },
           orderBy: "created",
           orderDirection: desc
         ) {
