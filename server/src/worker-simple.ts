@@ -220,8 +220,25 @@ app.post('/api/analysis', async (c) => {
         summary: "AI analysis unavailable. Configure DEEPSEEK_API_KEY.",
         riskLevel: 'Medium',
         recommendation: 'Abstain',
+        strategyMatchScore: 50,
+        strategyReasoning: 'AI analysis unavailable - configure API key to enable.',
+        riskAnalysis: 'Unable to perform risk analysis without API key.',
+        keyPoints: ['AI analysis not configured'],
+        securityChecks: [{ name: 'AI Analysis', status: 'warning', details: 'API key not configured' }],
       });
     }
+
+    const systemPrompt = `You are a DAO governance analyst. Analyze proposals and return valid JSON with these fields:
+- summary: 2-3 sentence summary of the proposal
+- riskLevel: one of "Low", "Medium", "High", "Critical"
+- recommendation: one of "For", "Against", "Abstain"
+- strategyMatchScore: 0-100 integer, how well this aligns with good governance practices
+- strategyReasoning: 1-2 sentences explaining the strategy alignment score
+- riskAnalysis: 1-2 sentences on potential risks
+- keyPoints: array of 3-5 key takeaway strings
+- securityChecks: array of objects with {name, status, details} where status is "pass", "warning", or "fail"
+
+Respond ONLY with the JSON object, no markdown.`;
 
     // Direct fetch to DeepSeek API (no OpenAI SDK)
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -235,11 +252,11 @@ app.post('/api/analysis', async (c) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a DAO governance analyst. Respond with valid JSON.',
+            content: systemPrompt,
           },
           {
             role: 'user',
-            content: `Analyze this proposal and return JSON with: summary, riskLevel, recommendation.\n\n${proposalText.slice(0, 2000)}`,
+            content: `Analyze this DAO governance proposal:\n\n${proposalText.slice(0, 3000)}`,
           },
         ],
         temperature: 0.3,
@@ -259,6 +276,11 @@ app.post('/api/analysis', async (c) => {
       summary: text.slice(0, 200),
       riskLevel: 'Medium',
       recommendation: 'Abstain',
+      strategyMatchScore: 50,
+      strategyReasoning: 'Could not parse AI response.',
+      riskAnalysis: text.slice(0, 200),
+      keyPoints: [],
+      securityChecks: [],
     });
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
