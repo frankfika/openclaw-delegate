@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useSnapshotVote } from '../hooks/useSnapshotVote';
-import { Check, X, Loader2, ExternalLink, AlertTriangle, Award } from 'lucide-react';
+import { Check, X, Loader2, ExternalLink, AlertTriangle, Award, RefreshCw } from 'lucide-react';
 
 // DAO space -> token contract address mapping (for Uniswap links)
 const SPACE_TO_TOKEN_ADDRESS: Record<string, string> = {
@@ -110,6 +110,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
     error,
     castVote,
     reset,
+    refreshVotingPower,
   } = useSnapshotVote({
     space: spaceId,
     proposal: snapshotId || proposalId,
@@ -224,6 +225,14 @@ const VoteButton: React.FC<VoteButtonProps> = ({
             ) : (
               <>VP: {Math.round(votingPower).toLocaleString()}</>
             )}
+            <button
+              onClick={refreshVotingPower}
+              disabled={vpLoading}
+              className="ml-2 p-1 rounded-full hover:bg-zinc-100 transition-colors disabled:opacity-50"
+              title="Refresh voting power"
+            >
+              <RefreshCw size={12} className={`${vpLoading ? 'animate-spin' : ''} text-zinc-400 hover:text-zinc-600`} />
+            </button>
           </div>
           {hasNoVP && (
             <div className="text-[10px] text-zinc-500 text-center max-w-sm mx-auto leading-relaxed bg-amber-50 border border-amber-100 rounded-lg p-3 space-y-2">

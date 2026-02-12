@@ -21,6 +21,7 @@ export interface SnapshotVoteState {
   error: string | null;
   castVote: (choiceIndex: number, reason?: string) => Promise<void>;
   reset: () => void;
+  refreshVotingPower: () => Promise<void>;
 }
 
 export function useSnapshotVote(params: {
@@ -163,6 +164,22 @@ export function useSnapshotVote(params: {
     setPointsEarned(null);
   }, []);
 
+  const refreshVotingPower = useCallback(async () => {
+    if (!isConnected || !address || !space || !proposal) {
+      return;
+    }
+
+    setVpLoading(true);
+    try {
+      const result = await getVotingPower({ address, space, proposal });
+      setVotingPower(result.vp);
+    } catch (err) {
+      console.error('Failed to refresh voting power:', err);
+    } finally {
+      setVpLoading(false);
+    }
+  }, [isConnected, address, space, proposal]);
+
   return {
     votingPower,
     vpLoading,
@@ -174,5 +191,6 @@ export function useSnapshotVote(params: {
     error,
     castVote,
     reset,
+    refreshVotingPower,
   };
 }
