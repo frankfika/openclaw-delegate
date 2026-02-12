@@ -67,17 +67,15 @@ const Header: React.FC<HeaderProps> = ({ activeView, onChangeView }) => {
           <div className="flex items-center gap-2.5">
             {item.icon}
             <span className={`${activeView === item.id ? 'block' : 'hidden md:block'}`}>{item.label}</span>
+            {/* Show points badge on Points nav item */}
+            {item.id === 'rewards' && isConnected && points !== null && (
+              <span className="ml-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+                {points.toLocaleString()}
+              </span>
+            )}
           </div>
         </button>
       ))}
-
-      {/* Points Badge (when connected) */}
-      {isConnected && points !== null && (
-        <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-amber-50 border border-amber-100 rounded-full">
-          <Award size={14} className="text-amber-600" />
-          <span className="text-xs font-bold text-amber-700">{points.toLocaleString()}</span>
-        </div>
-      )}
 
       {/* Current Chain Badge */}
       {isConnected && chain && (
