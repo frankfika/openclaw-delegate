@@ -21,7 +21,7 @@ VoteNow = **治理聚合器 + AI分析师 + 激励层**
 1. **一站式投票**：近20个主流DAO的提案全部聚合在一个界面，支持Snapshot链下签名投票 + OpenZeppelin Governor链上投票，一键完成
 2. **AI分析师（Governance Agent）**：DeepSeek驱动的专属分析师，用2句话告诉你提案是什么、风险多大、该怎么投
 3. **投票即赚**：每次投票获得40-100基础积分（按DAO级别分层），早投奖励+20%、连续投票最高+50%，积分可兑换USDC、NFT、gas券
-4. **智能提醒**：Telegram Bot集成，关注的DAO有新提案时自动推送，支持Bot内直接投票
+4. **智能提醒**：Telegram Bot集成，关注的DAO有新提案时自动推送，支持Bot内查看分析并跳转投票
 
 ---
 
@@ -89,19 +89,27 @@ Hono API 后端（Node.js，支持Cloudflare Workers/Railway部署）
 - 用偏差数据调整 Prompt 中的策略权重（不需要模型微调，Prompt 层面即可实现）
 - 例：某用户总是对"资金转移类"提案投 Against → 自动调高该类提案的风险权重
 
-### 2.3 与 OpenClaw 的关系
+### 2.3 演进方向：从治理工具到自主治理Agent
 
-**OpenClaw（https://openclaw.ai/）是我们团队开发的开源个人 AI 助手项目。**
+**当前的 VoteNow 是一个Web应用——用户主动打开、查看、投票。未来方向是演进为自主DAO治理Agent。**
 
-VoteNow 的 AI 分析能力和 OpenClaw 共享同一个团队的 AI 工程经验，但两者是独立产品：
+我们借鉴 OpenClaw（https://openclaw.ai/）的设计架构——一个具备持久记忆、技能系统、多渠道接入和后台自主执行能力的开源AI助手框架，将其核心理念应用于DAO治理场景，打造**DAO版的OpenClaw**：
 
-- **VoteNow** 是 Web 应用，面向治理投票场景，强调聚合和易用
-- **OpenClaw** 是本地 AI 助手，面向通用个人效率场景
+| 维度 | 当前（Web工具） | 未来（自主治理Agent） |
+|------|-----------------|----------------------|
+| **交互方式** | 用户打开网页查看 | Agent通过Telegram/Discord/WhatsApp主动触达 |
+| **分析触发** | 用户点击"分析" | Agent自动监控提案，实时分析并推送 |
+| **决策模式** | 展示AI建议，用户手动投票 | 学习用户偏好，对低风险提案半自主投票（用户预授权） |
+| **记忆能力** | 无状态 | 记住用户的投票历史、风险偏好、关注领域 |
+| **扩展性** | 固定功能 | 开放技能系统，社区可开发治理插件 |
 
-**协同价值**：
-- OpenClaw 积累的 Prompt 工程、上下文管理、工具调用经验，直接服务于 VoteNow 的 AI 分析模块
-- 未来 VoteNow 的治理分析能力可以作为 OpenClaw 的一个 Skill 插件，让 OpenClaw 用户在本地环境中使用治理分析
-- 团队在 AI 应用层有双线实践，对 LLM 的能力边界和工程化有实战认知
+**核心架构（四层模型）**：
+1. **感知层**：持续监控Snapshot + 链上Governor提案流，实时捕获新提案
+2. **分析层**：DeepSeek驱动的多步骤分析管线，结合用户历史偏好做个性化评估
+3. **执行层**：EIP-712签名（Snapshot）/ 合约调用（链上），支持预授权的半自主投票
+4. **安全层**：人类始终拥有最终决策权——Agent有建议权，无决定权
+
+**为什么这是正确的方向**：DAO治理天然适合Agent化。提案有固定生命周期、结构化的投票选项、可量化的风险维度——这些都是AI Agent擅长处理的场景。当别的治理工具还在等用户打开网页时，VoteNow的Agent已经帮你分析完了。
 
 ### 2.4 为什么 AI 是差异化而非噱头？
 
@@ -147,7 +155,7 @@ VoteNow 的 AI 分析能力和 OpenClaw 共享同一个团队的 AI 工程经验
 5. Snapshot验证签名并记录投票
 6. 投票结果在Snapshot官方页面可见
 
-**链上投票流程（Aave/Uniswap/Compound/ENS/Lido）：**
+**链上投票流程（Aave/Uniswap/Compound/Arbitrum）：**
 1. 用户在VoteNow选择投票选项
 2. 调用对应Governor合约的`castVote`方法
 3. 用户用MetaMask确认交易（需付gas费）
@@ -168,9 +176,9 @@ VoteNow 的 AI 分析能力和 OpenClaw 共享同一个团队的 AI 工程经验
 | **投票成本** | 0 gas（免费） | $5-50 gas/次 |
 | **执行方式** | 多签钱包人工执行 | 合约自动执行 |
 | **使用比例** | **80%的DAO** | 大型协议（Aave、Compound） |
-| **示例** | Arbitrum、Gitcoin、ParaSwap | Aave、Compound |
+| **示例** | Gitcoin、Safe、ParaSwap | Aave、Compound |
 
-> **注**：部分DAO同时使用两种机制。例如Uniswap、ENS、Lido均使用Snapshot做社区温度投票（temperature check），链上Governor做最终执行投票。VoteNow两种机制均已支持。
+> **注**：部分DAO同时使用两种机制。例如Uniswap、Arbitrum使用Snapshot做社区温度投票（temperature check），链上Governor做最终执行投票。ENS、Lido、Curve、Optimism同理。VoteNow当前已集成Governor合约的DAO：Aave、Uniswap、Compound、Arbitrum，其余将逐步接入。
 
 #### 为什么以Snapshot为主、链上为辅？
 
@@ -181,7 +189,7 @@ VoteNow 的 AI 分析能力和 OpenClaw 共享同一个团队的 AI 工程经验
 
 **技术原因**：
 - Snapshot API成熟、稳定，可以快速覆盖大量DAO
-- 链上Governor合约已支持（Aave、Uniswap、Compound、ENS、Lido），但每个协议需单独适配
+- 链上Governor合约已集成Aave、Uniswap、Compound、Arbitrum，ENS/Lido等逐步接入，每个协议需单独适配
 - 先用Snapshot验证产品-market fit，同时逐步扩展链上覆盖
 
 #### 路线图：持续扩展治理覆盖
@@ -189,7 +197,7 @@ VoteNow 的 AI 分析能力和 OpenClaw 共享同一个团队的 AI 工程经验
 ```
 Phase 1（当前）: Snapshot + 基础链上治理
     ↓ Snapshot投票：覆盖全部19个DAO
-    ↓ 链上投票：已支持OpenZeppelin Governor（Aave/Uniswap/Compound/ENS/Lido）
+    ↓ 链上投票：已集成OpenZeppelin Governor（Aave/Uniswap/Compound/Arbitrum）
     ↓ 覆盖Ethereum/Arbitrum/Optimism/Polygon 四条主链
 Phase 2: 深度链上集成
     ↓ 接入更多Governor框架（Nouns等）
@@ -558,77 +566,22 @@ VoteNow 作为 HashKey 生态的核心治理层：
 
 ---
 
-## 九、结语：为什么是现在？为什么是我们？
+## 九、结语
 
-### 9.1 为什么是现在？历史性的窗口期
+### 为什么是现在？
 
-**DeFi正在经历从「交易驱动」到「治理驱动」的范式转移。**
-
-| 阶段 | 驱动力 | 代表 | 局限 | 可持续性 |
-|------|--------|------|------|----------|
-| DeFi Summer 1.0 | 高收益挖矿 | Uniswap、Compound | 不可持续，泡沫破裂 | 低 |
-| DeFi 2.0 | 协议自有流动性 | Olympus、Tokemak | 机制复杂，信任成本高 | 中 |
-| **DeFi 3.0（现在）** | **治理参与 + 真实价值** | **VoteNow** | **需要教育市场，用户习惯待养成** | **高** |
-
-**四大趋势交汇：**
-1. **AI成熟**：LLM让治理分析自动化，成本降到可规模化
+四个趋势同时到位：
+1. **AI成熟**：LLM让治理分析自动化，成本可规模化
 2. **DAO爆发**：$25B金库需要真实治理，不是鲸鱼操控
 3. **积分模式验证**：Friend.tech、Blast证明行为激励有效
 4. **多链统一需求**：用户需要跨链身份，治理是最佳锚点
 
-**这不是做一个工具，是定义一个新品类。**
+### 为什么是我们？
 
-### 9.2 为什么是我们？占据生态位的能力
+产品已上线，双轨投票基础设施已完成，AI分析引擎已跑通。我们不是在讲概念——19个DAO、4条主链、完整的积分体系都在运行中。
 
-**VoteNow占据的是DeFi生态中最稀缺的位置：入口。**
+**终极愿景：让治理参与成为每个Web3用户的默认行为。**
 
-#### 网络效应的三重叠加
-
-```
-治理参与 (人)
-    │
-    ├── 吸引更多DAO入驻 (协议)
-    │
-    ├── 吸引更多项目方推广 (资金)
-    │
-    └── 吸引更多交易所合作 (流动性)
-                │
-                ▼
-         更大的生态价值
-                │
-                └── 吸引更多用户 (人)
-```
-
-**这不是简单的工具，是生态的正向飞轮。**
-
-#### 我们的独特能力 + HashKey 战略协同
-
-| 能力 | 说明 | 壁垒 |
-|------|------|------|
-| **AI治理分析** | DeepSeek驱动的提案分析引擎，治理场景Prompt持续优化 | 领域专项积累，通用工具难替代 |
-| **双轨投票基础设施** | Snapshot链下签名 + OpenZeppelin Governor链上投票 | 集成工作量大，已完成并通过测试 |
-| **多DAO聚合** | 19个 DAO、4条主链统一管理 | 每个DAO需要单独配置和适配 |
-| **用户网络** | 治理活跃分子的聚集地 | 先发优势，迁移成本高 |
-| **HashKey协同** | $VOTE代币发行在HashKey，共建治理生态 | 战略合作 |
-
-**核心护城河**：
-1. **治理入口**：当治理成为DeFi的标准入口，用户习惯即壁垒
-2. **数据积累**：用户投票行为数据持续积累，驱动AI分析持续优化
-3. **HashKey战略协同**：$VOTE代币在HashKey Chain发行，共建治理生态基础设施
-
-#### 终极愿景
-
-**让治理参与成为每个Web3用户的默认行为。**
-
-就像：
-- 用Google搜索信息
-- 用MetaMask管理资产
-- **用VoteNow参与治理 → 发现资产 → 交易理财**
-
-**治理不是终点，是DeFi新生态的起点。**
+治理不是终点，是DeFi新生态的起点。
 
 ---
-
-**联系**：[Your Email]
-**Demo**：[App Link]
-**代码**：[GitHub Link]
