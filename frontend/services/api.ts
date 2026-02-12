@@ -1,6 +1,8 @@
 import { AnalysisResult, RiskLevel, VoteType } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.PROD
+  ? 'https://votenow-api.chenpitang2020.workers.dev/api'
+  : '/api';
 
 export async function fetchProposals(dao?: string): Promise<any[]> {
   const params = dao ? `?dao=${encodeURIComponent(dao)}` : '';
