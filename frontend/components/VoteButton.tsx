@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useSnapshotVote } from '../hooks/useSnapshotVote';
+import { useOnChainVote } from '../hooks/useOnChainVote';
 import { Check, X, Loader2, ExternalLink, AlertTriangle, Award, RefreshCw } from 'lucide-react';
 
 // DAO space -> token contract address mapping (for Uniswap links)
@@ -84,10 +85,16 @@ function getTokenAddress(spaceId?: string): string {
 interface VoteButtonProps {
   proposalId: string;
   recommendation: string;
+  // Snapshot fields
   spaceId?: string;
   snapshotId?: string;
   choices?: string[];
   proposalType?: string;
+  // OnChain fields
+  source?: 'Snapshot' | 'OnChain';
+  governorAddress?: `0x${string}`;
+  onChainProposalId?: string;
+  chainId?: number;
 }
 
 const VoteButton: React.FC<VoteButtonProps> = ({
@@ -97,25 +104,49 @@ const VoteButton: React.FC<VoteButtonProps> = ({
   snapshotId,
   choices,
   proposalType,
+  source = 'Snapshot',
+  governorAddress,
+  onChainProposalId,
+  chainId,
 }) => {
   const { address, isConnected, connectWallet } = useWallet();
-  const {
-    votingPower,
-    vpLoading,
-    existingVote,
-    existingVoteLoading,
-    voting,
-    receipt,
-    pointsEarned,
-    error,
-    castVote,
-    reset,
-    refreshVotingPower,
-  } = useSnapshotVote({
+
+  // Use Snapshot voting or OnChain voting based on source
+  const isOnChain = source === 'OnChain';
+
+  // Snapshot voting hook
+  const snapshotVote = useSnapshotVote({
     space: spaceId,
     proposal: snapshotId || proposalId,
     proposalType,
   });
+
+  // OnChain voting hook
+  const onChainVote = useOnChainVote({
+    governorAddress,
+    proposalId: onChainProposalId ? BigInt(onChainProposalId) : undefined,
+    chainId,
+  });
+
+  // Use the appropriate hook based on source
+  const {
+    votingPower: rawVotingPower,
+    vpLoading,
+    voting,
+    error,
+    refreshVotingPower,
+  } = isOnChain ? onChainVote : snapshotVote;
+
+  // For OnChain, convert bigint to number
+  const votingPower = isOnChain && rawVotingPower
+    ? Number(rawVotingPower) / 1e18 // Assume 18 decimals
+    : (rawVotingPower as number | null);
+
+  const existingVote = isOnChain ? null : snapshotVote.existingVote;
+  const receipt = isOnChain ? null : snapshotVote.receipt;
+  const pointsEarned = isOnChain ? null : snapshotVote.pointsEarned;
+  const hasVoted = isOnChain ? onChainVote.hasVoted : false;
+  const txHash = isOnChain ? onChainVote.txHash : null;
 
   const [showPointsAnim, setShowPointsAnim] = useState(false);
 
@@ -132,11 +163,19 @@ const VoteButton: React.FC<VoteButtonProps> = ({
       connectWallet();
       return;
     }
-    await castVote(choiceIndex);
+
+    if (isOnChain) {
+      // OnChain: 0=Against, 1=For, 2=Abstain
+      const support = choiceIndex === 1 ? 1 : choiceIndex === 2 ? 0 : 2;
+      await onChainVote.castVote(support);
+    } else {
+      // Snapshot
+      await snapshotVote.castVote(choiceIndex);
+    }
   };
 
-  // Already voted (from Snapshot query or just voted)
-  if (existingVote || receipt) {
+  // Already voted
+  if (existingVote || receipt || hasVoted) {
     const choiceIdx = existingVote?.choice ?? 1;
     const votedChoice = choices?.[choiceIdx - 1] || `Choice ${choiceIdx}`;
 
@@ -237,20 +276,40 @@ const VoteButton: React.FC<VoteButtonProps> = ({
           {hasNoVP && (
             <div className="text-[10px] text-zinc-500 text-center max-w-sm mx-auto leading-relaxed bg-amber-50 border border-amber-100 rounded-lg p-3 space-y-2">
               <p className="mb-1">
-                <span className="font-semibold text-amber-700">Why can't I vote on THIS proposal?</span>
+                <span className="font-semibold text-amber-700">Why can't I vote?</span>
               </p>
-              <p className="mb-2 bg-amber-100 border border-amber-200 rounded px-2 py-1.5">
-                <span className="font-bold text-amber-900">This proposal uses a snapshot from the past.</span> You needed to own <span className="font-bold text-amber-800">{getTokenSymbol(spaceId)}</span> tokens <span className="underline">before this proposal was created</span>.
-              </p>
-              <p className="text-rose-700 font-semibold mb-2 bg-rose-50 border border-rose-200 rounded px-2 py-1">
-                ⚠️ Buying tokens NOW won't let you vote on this proposal
-              </p>
-              <div className="bg-emerald-50 border border-emerald-200 rounded px-2 py-1.5 mb-2">
-                <p className="text-emerald-800 font-semibold mb-1">✅ But you CAN vote on FUTURE proposals!</p>
-                <p className="text-[9px] text-emerald-700">
-                  Buy {getTokenSymbol(spaceId)} now and you'll be able to vote on all new proposals this DAO creates.
-                </p>
-              </div>
+
+              {isOnChain ? (
+                // OnChain governance - can buy tokens now!
+                <>
+                  <p className="mb-2 bg-emerald-100 border border-emerald-200 rounded px-2 py-1.5">
+                    <span className="font-bold text-emerald-900">This is on-chain governance!</span> You need to own <span className="font-bold text-emerald-800">{getTokenSymbol(spaceId)}</span> tokens to vote.
+                  </p>
+                  <p className="text-emerald-700 font-semibold mb-2 bg-emerald-50 border border-emerald-200 rounded px-2 py-1">
+                    ✅ Buy tokens NOW and you can vote immediately!
+                  </p>
+                  <p className="text-[9px] text-emerald-700 mb-2">
+                    On-chain voting checks your <span className="font-semibold">current balance</span>, not historical snapshots.
+                  </p>
+                </>
+              ) : (
+                // Snapshot governance - historical snapshot
+                <>
+                  <p className="mb-2 bg-amber-100 border border-amber-200 rounded px-2 py-1.5">
+                    <span className="font-bold text-amber-900">This proposal uses a snapshot from the past.</span> You needed to own <span className="font-bold text-amber-800">{getTokenSymbol(spaceId)}</span> tokens <span className="underline">before this proposal was created</span>.
+                  </p>
+                  <p className="text-rose-700 font-semibold mb-2 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+                    ⚠️ Buying tokens NOW won't let you vote on this proposal
+                  </p>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded px-2 py-1.5 mb-2">
+                    <p className="text-emerald-800 font-semibold mb-1">✅ But you CAN vote on FUTURE proposals!</p>
+                    <p className="text-[9px] text-emerald-700">
+                      Buy {getTokenSymbol(spaceId)} now and you'll be able to vote on all new proposals this DAO creates.
+                    </p>
+                  </div>
+                </>
+              )}
+
               <div className="flex gap-2 justify-center">
                 {getTokenAddress(spaceId) ? (
                   <a
