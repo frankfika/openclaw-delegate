@@ -1,13 +1,18 @@
 import { createConfig, http } from 'wagmi';
 import { mainnet, sepolia, arbitrum, optimism, polygon } from 'wagmi/chains';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
 
 export const wagmiConfig = createConfig({
   chains: [mainnet, sepolia, arbitrum, optimism, polygon],
   connectors: [
-    injected({
-      target: 'metaMask',
+    injected(), // MetaMask, Trust, Coinbase extension, etc.
+    walletConnect({
+      projectId: 'YOUR_PROJECT_ID', // You'll need to get this from WalletConnect Cloud
+      showQrModal: true,
+    }),
+    coinbaseWallet({
+      appName: 'VoteNow',
     }),
   ],
   transports: {
@@ -26,44 +31,12 @@ export function useWallet() {
   const { connect, connectors, error } = useConnect();
   const { disconnect } = useDisconnect();
 
+  // Return both connectWallet (old) and connectors (new) for backwards compatibility
   const connectWallet = async () => {
-    // Check if MetaMask is available
-    if (typeof window.ethereum === 'undefined') {
-      alert('Please install MetaMask extension to connect your wallet.');
-      window.open('https://metamask.io/download/', '_blank');
-      return;
-    }
-
-    try {
-      // Use wallet_requestPermissions to FORCE MetaMask popup every time
-      // This is different from eth_requestAccounts which auto-approves if already authorized
-      await window.ethereum.request({
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }],
-      });
-
-      // After user approves in MetaMask popup, get the accounts
-      const accounts = await window.ethereum.request({
-        method: 'eth_accounts',
-      });
-
-      if (!accounts || accounts.length === 0) {
-        alert('No accounts returned from MetaMask. Please try again.');
-        return;
-      }
-
-      // Connect via wagmi to sync state
-      const connector = connectors.find(c => c.id === 'metaMask' || c.type === 'injected') || connectors[0];
-      if (connector) {
-        connect({ connector });
-      }
-    } catch (err: any) {
-      if (err.code === 4001) {
-        // User rejected the request - this is fine, just do nothing
-        return;
-      }
-      console.error('Wallet connection error:', err);
-      alert(`Failed to connect wallet: ${err.message}`);
+    // Just connect with the first available connector (usually injected/MetaMask)
+    const connector = connectors[0];
+    if (connector) {
+      connect({ connector });
     }
   };
 
@@ -72,6 +45,8 @@ export function useWallet() {
     isConnected: account.isConnected,
     chain: account.chain,
     connectWallet,
+    connectors, // Expose connectors for manual selection
+    connect,    // Expose connect function
     disconnect,
     error,
   };
