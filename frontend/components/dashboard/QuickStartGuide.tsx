@@ -1,13 +1,63 @@
-import { HelpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { HelpCircle, X, ChevronDown } from 'lucide-react';
+
+const STORAGE_KEY = 'votenow-guide-dismissed';
 
 export function QuickStartGuide() {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(STORAGE_KEY) === 'true';
+    setIsDismissed(dismissed);
+    // Default to expanded on first visit
+    setIsExpanded(!dismissed);
+  }, []);
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    setIsExpanded(false);
+    localStorage.setItem(STORAGE_KEY, 'true');
+  };
+
+  const handleExpand = () => {
+    setIsExpanded(true);
+    setIsDismissed(false);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  // Minimized floating button
+  if (isDismissed || !isExpanded) {
+    return (
+      <button
+        onClick={handleExpand}
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group"
+        title="How VoteNow Works"
+      >
+        <HelpCircle size={20} />
+        <span className="absolute right-full mr-3 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          How it works
+        </span>
+      </button>
+    );
+  }
+
   return (
-    <div className="bg-gradient-to-r from-indigo-50 via-violet-50 to-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-sm animate-in fade-in duration-700 delay-200">
+    <div className="relative bg-gradient-to-r from-indigo-50 via-violet-50 to-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-sm animate-in fade-in duration-300">
+      {/* Close button */}
+      <button
+        onClick={handleDismiss}
+        className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-white/50 rounded-full transition-colors"
+        title="Hide guide"
+      >
+        <X size={18} />
+      </button>
+
       <div className="flex items-start gap-4">
         <div className="p-3 bg-indigo-500 rounded-2xl">
           <HelpCircle size={24} className="text-white" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 pr-8">
           <h3 className="text-lg font-bold text-zinc-900 mb-2">How VoteNow Works</h3>
           <div className="grid md:grid-cols-3 gap-4 mb-4">
             <div className="flex items-start gap-3">

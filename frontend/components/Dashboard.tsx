@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Proposal, isSnapshotProposal } from '../types';
 import { useWallet } from '../hooks/useWallet';
 import PointsPanel from './PointsPanel';
@@ -32,11 +32,18 @@ export default function Dashboard({
 
   const userChainId = chain?.id.toString();
 
-  // Get unique DAOs for filter
-  const uniqueDAOsList = useMemo(
-    () => Array.from(new Set(proposals.map((p) => p.daoName))).sort(),
-    [proposals]
-  );
+  // Get unique DAOs for filter (filtered by selected chain)
+  const uniqueDAOsList = useMemo(() => {
+    // First filter by chain if selected
+    const chainFiltered = chainFilter === 'all'
+      ? proposals
+      : proposals.filter((p) => {
+          const proposalChain = isSnapshotProposal(p) ? p.network : String(p.chainId);
+          return proposalChain === chainFilter;
+        });
+    // Then extract unique DAO names
+    return Array.from(new Set(chainFiltered.map((p) => p.daoName))).sort();
+  }, [proposals, chainFilter]);
 
   // Filter proposals
   const filteredProposals = useMemo(() => {
@@ -108,6 +115,13 @@ export default function Dashboard({
       setDismissedIds((prev) => new Set(prev).add(heroProposal.id));
     }
   }, [heroProposal]);
+
+  // Reset DAO filter when chain changes and current DAO is not in the new list
+  useEffect(() => {
+    if (daoFilter !== 'all' && !uniqueDAOsList.includes(daoFilter)) {
+      setDaoFilter('all');
+    }
+  }, [uniqueDAOsList, daoFilter]);
 
   return (
     <div className="space-y-8">

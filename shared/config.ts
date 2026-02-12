@@ -476,6 +476,22 @@ export function getChainColor(chainId: string | number): string {
   return CHAIN_CONFIG[id]?.color || '#6366F1';
 }
 
+// ============ Block Explorer Configuration ============
+
+export const EXPLORER_URLS: Record<number, { name: string; url: string }> = {
+  1: { name: 'Etherscan', url: 'https://etherscan.io' },
+  137: { name: 'PolygonScan', url: 'https://polygonscan.com' },
+  42161: { name: 'Arbiscan', url: 'https://arbiscan.io' },
+  10: { name: 'Optimistic Etherscan', url: 'https://optimistic.etherscan.io' },
+  56: { name: 'BscScan', url: 'https://bscscan.com' },
+  8453: { name: 'Basescan', url: 'https://basescan.org' },
+  324: { name: 'zkSync Explorer', url: 'https://explorer.zksync.io' },
+};
+
+export function getExplorerUrl(chainId: number): string {
+  return EXPLORER_URLS[chainId]?.url || 'https://etherscan.io';
+}
+
 // ============ AI Configuration ============
 
 export const AI_CONFIG = {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Proposal, AnalysisResult, ChatMessage } from '../types';
+import { Proposal, AnalysisResult, ChatMessage, isSnapshotProposal } from '../types';
 import { analyzeProposal, chatWithAgent } from '../services/api';
 import RiskBadge from './RiskBadge';
 import VoteButton from './VoteButton';
+import { getExplorerUrl } from '../../shared/config';
 import {
-  ArrowLeft, Cpu, Send, Sparkles, X, FileText, MessageCircle, Network
+  ArrowLeft, Cpu, Send, Sparkles, X, FileText, MessageCircle, Network, ExternalLink
 } from 'lucide-react';
 
 interface ProposalDetailProps {
@@ -20,6 +21,27 @@ const ProposalDetail: React.FC<ProposalDetailProps> = ({ proposal, onBack }) => 
   const [mobileTab, setMobileTab] = useState<'chat' | 'document'>('chat');
   const chatEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
+
+  // Generate proposal URL based on type
+  const getProposalUrl = (): { url: string; label: string } => {
+    if (isSnapshotProposal(proposal)) {
+      return {
+        url: `https://snapshot.org/#/${proposal.spaceId}/proposal/${proposal.snapshotId}`,
+        label: 'View on Snapshot'
+      };
+    } else {
+      const explorerUrl = getExplorerUrl(proposal.chainId);
+      return {
+        url: `${explorerUrl}/tx/${proposal.id}`,
+        label: 'View on Explorer'
+      };
+    }
+  };
+
+  // Get governance type label
+  const getGovernanceTypeLabel = () => {
+    return isSnapshotProposal(proposal) ? 'Snapshot' : 'OnChain';
+  };
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -79,23 +101,46 @@ const ProposalDetail: React.FC<ProposalDetailProps> = ({ proposal, onBack }) => 
   const DocumentPanel = () => (
     <div className="h-full overflow-y-auto custom-scrollbar p-10 bg-gradient-to-b from-white/50 to-zinc-50/50">
       <div className="max-w-2xl mx-auto pb-10">
-        {/* Network Badge */}
-        {proposal.snapshotNetwork && (
-          <div className="mb-6 flex items-center gap-2 text-xs">
-            <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center gap-2">
-              <Network size={12} className="text-indigo-600" />
-              <span className="font-semibold text-indigo-700">
-                Network: {proposal.snapshotNetwork === '1' ? 'Ethereum' :
-                         proposal.snapshotNetwork === '137' ? 'Polygon' :
-                         proposal.snapshotNetwork === '42161' ? 'Arbitrum' :
-                         proposal.snapshotNetwork === '10' ? 'Optimism' :
-                         `Chain ${proposal.snapshotNetwork}`}
-              </span>
-            </div>
-            <span className="text-zinc-400">•</span>
-            <span className="text-zinc-500 font-medium">{proposal.daoName}</span>
+        {/* Network Badge & DAO Info */}
+        <div className="mb-6 flex items-center gap-2 text-xs flex-wrap">
+          {/* Governance Type Badge */}
+          <span className={`px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${
+            isSnapshotProposal(proposal)
+              ? 'bg-amber-100 text-amber-700 border border-amber-200'
+              : 'bg-purple-100 text-purple-700 border border-purple-200'
+          }`}>
+            {getGovernanceTypeLabel()}
+          </span>
+          <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center gap-2">
+            <Network size={12} className="text-indigo-600" />
+            <span className="font-semibold text-indigo-700">
+              Network: {isSnapshotProposal(proposal)
+                ? (proposal.network === '1' ? 'Ethereum' :
+                   proposal.network === '137' ? 'Polygon' :
+                   proposal.network === '42161' ? 'Arbitrum' :
+                   proposal.network === '10' ? 'Optimism' :
+                   `Chain ${proposal.network}`)
+                : (proposal.chainId === 1 ? 'Ethereum' :
+                   proposal.chainId === 137 ? 'Polygon' :
+                   proposal.chainId === 42161 ? 'Arbitrum' :
+                   proposal.chainId === 10 ? 'Optimism' :
+                   `Chain ${proposal.chainId}`)
+              }
+            </span>
           </div>
-        )}
+          <span className="text-zinc-400">•</span>
+          <span className="text-zinc-500 font-medium">{proposal.daoName}</span>
+          <span className="text-zinc-400">•</span>
+          <a
+            href={getProposalUrl().url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors"
+          >
+            {getProposalUrl().label}
+            <ExternalLink size={12} />
+          </a>
+        </div>
 
         <div className="flex gap-2 mb-8">
           {proposal.tags.map(tag => (
@@ -236,9 +281,16 @@ const ProposalDetail: React.FC<ProposalDetailProps> = ({ proposal, onBack }) => 
             </div>
          </div>
          <div className="flex items-center gap-3">
-            <div className="px-3 py-1 bg-zinc-100 rounded-lg border border-zinc-200 text-xs font-mono text-zinc-500">
-               ID: {proposal.displayId || proposal.id.slice(0, 8)}
-            </div>
+            <a
+               href={getProposalUrl().url}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 rounded-lg border border-zinc-200 text-xs font-mono text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-2 group"
+               title={getProposalUrl().label}
+            >
+               <span>ID: {proposal.displayId || proposal.id.slice(0, 8)}</span>
+               <ExternalLink size={12} className="text-zinc-400 group-hover:text-zinc-600" />
+            </a>
             <div className="h-4 w-px bg-zinc-300 mx-1"></div>
             <div className="w-8 h-8 rounded-full hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center cursor-pointer transition-colors text-zinc-400" onClick={onBack}>
               <X size={16} />
