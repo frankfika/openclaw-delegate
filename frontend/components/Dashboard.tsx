@@ -38,7 +38,9 @@ export default function Dashboard({
     const chainFiltered = chainFilter === 'all'
       ? proposals
       : proposals.filter((p) => {
-          const proposalChain = isSnapshotProposal(p) ? p.network : String(p.chainId);
+          const proposalChain = isSnapshotProposal(p)
+            ? String(p.network)
+            : String(p.chainId);
           return proposalChain === chainFilter;
         });
     // Then extract unique DAO names
@@ -50,7 +52,7 @@ export default function Dashboard({
     return proposals.filter((p) => {
       if (chainFilter !== 'all') {
         const proposalChain = isSnapshotProposal(p)
-          ? p.network
+          ? String(p.network)
           : String(p.chainId);
         if (proposalChain !== chainFilter) return false;
       }
@@ -97,7 +99,7 @@ export default function Dashboard({
     if (!isConnected || !userChainId) return eligible[0] || null;
 
     const onUserChain = eligible.filter((p) => {
-      const chain = isSnapshotProposal(p) ? p.network : String(p.chainId);
+      const chain = isSnapshotProposal(p) ? String(p.network) : String(p.chainId);
       return chain === userChainId;
     });
 
