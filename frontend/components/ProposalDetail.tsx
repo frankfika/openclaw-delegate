@@ -171,6 +171,7 @@ const ProposalDetail: React.FC<ProposalDetailProps> = ({ proposal, onBack }) => 
                     snapshotId={proposal.snapshotId}
                     choices={proposal.choices}
                     proposalType={proposal.type}
+                    snapshotBlock={'snapshotBlock' in proposal ? proposal.snapshotBlock : undefined}
                   />
                 </div>
               )}

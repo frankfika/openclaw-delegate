@@ -22,6 +22,17 @@ const SPACE_TO_TOKEN_ADDRESS: Record<string, string> = {
   'opcollective.eth': '0x4200000000000000000000000000000000000042', // OP
   'stgdao.eth': '0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6', // STG
   'gmx.eth': '0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a', // GMX
+  '1inch.eth': '0x111111111117dC0aa78b770fA6A738034120C302', // 1INCH
+  'polygonfoundation.eth': '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // MATIC
+  'safe.eth': '0x5aFE3855358E112B5647B952709E6165e1c1eEEe', // SAFE
+  'thegraph.eth': '0xc944E90C64B2c07662A292be6244BDf05Cda44a7', // GRT
+  'paraswap-dao.eth': '0xcAfE001067cDEF266AfB7Eb5A286dCFD277f3dE5', // PSP
+  'olympusdao.eth': '0x64aa3364F17a4D01c6f1751Fd97C2BD3D7e7f1D5', // OHM
+  'apecoin.eth': '0x4d224452801ACEd8B2F0aebE155379bb5D594381', // APE
+  // Aliases for different naming conventions
+  'compound-community.eth': '0xc00e94Cb662C3520282E6f5717214004A7f26888', // COMP
+  'curve-dao.eth': '0xD533a949740bb3306d119CC777fa900bA034cd52', // CRV
+  'optimismgov.eth': '0x4200000000000000000000000000000000000042', // OP
 };
 
 // DAO space -> token symbol (for display)
@@ -42,6 +53,17 @@ const SPACE_TO_TOKEN_SYMBOL: Record<string, string> = {
   'opcollective.eth': 'OP',
   'stgdao.eth': 'STG',
   'gmx.eth': 'GMX',
+  '1inch.eth': '1INCH',
+  'polygonfoundation.eth': 'MATIC',
+  'safe.eth': 'SAFE',
+  'thegraph.eth': 'GRT',
+  'paraswap-dao.eth': 'PSP',
+  'olympusdao.eth': 'OHM',
+  'apecoin.eth': 'APE',
+  // Aliases
+  'compound-community.eth': 'COMP',
+  'curve-dao.eth': 'CRV',
+  'optimismgov.eth': 'OP',
 };
 
 // Get token symbol for display
@@ -61,6 +83,32 @@ function getTokenSymbol(spaceId?: string): string {
 
   // Fallback: capitalize first part
   return spaceId.split('.')[0].toUpperCase();
+}
+
+// Buy token button component
+function BuyTokenButton({ spaceId, variant = 'primary' }: { spaceId?: string; variant?: 'primary' | 'secondary' }) {
+  const tokenSymbol = getTokenSymbol(spaceId);
+  const tokenAddress = getTokenAddress(spaceId);
+
+  const baseClass = "inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg font-semibold text-xs transition-all";
+  const primaryClass = "bg-zinc-900 text-white hover:bg-zinc-800";
+  const secondaryClass = "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200";
+
+  const href = tokenAddress
+    ? `https://app.uniswap.org/swap?outputCurrency=${tokenAddress}`
+    : `https://www.google.com/search?q=how+to+buy+${tokenSymbol}+token`;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${baseClass} ${variant === 'primary' ? primaryClass : secondaryClass}`}
+    >
+      {variant === 'primary' ? 'Buy' : 'Get'} {tokenSymbol}
+      <ExternalLink size={12} />
+    </a>
+  );
 }
 
 // Get token contract address for Uniswap
@@ -90,6 +138,7 @@ interface VoteButtonProps {
   snapshotId?: string;
   choices?: string[];
   proposalType?: string;
+  snapshotBlock?: string;
   // OnChain fields
   source?: 'Snapshot' | 'OnChain';
   governorAddress?: `0x${string}`;
@@ -104,6 +153,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
   snapshotId,
   choices,
   proposalType,
+  snapshotBlock,
   source = 'Snapshot',
   governorAddress,
   onChainProposalId,
@@ -143,6 +193,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
     : (rawVotingPower as number | null);
 
   const existingVote = isOnChain ? null : snapshotVote.existingVote;
+  const existingVoteLoading = isOnChain ? false : snapshotVote.existingVoteLoading;
   const receipt = isOnChain ? null : snapshotVote.receipt;
   const pointsEarned = isOnChain ? null : snapshotVote.pointsEarned;
   const hasVoted = isOnChain ? onChainVote.hasVoted : false;
@@ -220,6 +271,10 @@ const VoteButton: React.FC<VoteButtonProps> = ({
   }
 
   if (error) {
+    const handleRetry = () => {
+      window.location.reload();
+    };
+
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-3 p-4 bg-rose-50 rounded-2xl border border-rose-100">
@@ -227,7 +282,7 @@ const VoteButton: React.FC<VoteButtonProps> = ({
           <p className="text-sm font-medium text-rose-700">{error}</p>
         </div>
         <button
-          onClick={reset}
+          onClick={handleRetry}
           className="w-full py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
         >
           Try again
@@ -274,63 +329,42 @@ const VoteButton: React.FC<VoteButtonProps> = ({
             </button>
           </div>
           {hasNoVP && (
-            <div className="text-[10px] text-zinc-500 text-center max-w-sm mx-auto leading-relaxed bg-amber-50 border border-amber-100 rounded-lg p-3 space-y-2">
-              <p className="mb-1">
-                <span className="font-semibold text-amber-700">Why can't I vote?</span>
-              </p>
-
+            <div className="text-center max-w-sm mx-auto bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
               {isOnChain ? (
                 // OnChain governance - can buy tokens now!
                 <>
-                  <p className="mb-2 bg-emerald-100 border border-emerald-200 rounded px-2 py-1.5">
-                    <span className="font-bold text-emerald-900">This is on-chain governance!</span> You need to own <span className="font-bold text-emerald-800">{getTokenSymbol(spaceId)}</span> tokens to vote.
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <span className="text-emerald-600 text-lg">✓</span>
+                    </span>
+                    <span className="font-bold text-zinc-900">Ready to vote</span>
+                  </div>
+                  <p className="text-xs text-zinc-600 mb-3">
+                    Get {getTokenSymbol(spaceId)} tokens to cast your vote
                   </p>
-                  <p className="text-emerald-700 font-semibold mb-2 bg-emerald-50 border border-emerald-200 rounded px-2 py-1">
-                    ✅ Buy tokens NOW and you can vote immediately!
-                  </p>
-                  <p className="text-[9px] text-emerald-700 mb-2">
-                    On-chain voting checks your <span className="font-semibold">current balance</span>, not historical snapshots.
-                  </p>
+                  <BuyTokenButton spaceId={spaceId} />
                 </>
               ) : (
                 // Snapshot governance - historical snapshot
                 <>
-                  <p className="mb-2 bg-amber-100 border border-amber-200 rounded px-2 py-1.5">
-                    <span className="font-bold text-amber-900">This proposal uses a snapshot from the past.</span> You needed to own <span className="font-bold text-amber-800">{getTokenSymbol(spaceId)}</span> tokens <span className="underline">before this proposal was created</span>.
-                  </p>
-                  <p className="text-rose-700 font-semibold mb-2 bg-rose-50 border border-rose-200 rounded px-2 py-1">
-                    ⚠️ Buying tokens NOW won't let you vote on this proposal
-                  </p>
-                  <div className="bg-emerald-50 border border-emerald-200 rounded px-2 py-1.5 mb-2">
-                    <p className="text-emerald-800 font-semibold mb-1">✅ But you CAN vote on FUTURE proposals!</p>
-                    <p className="text-[9px] text-emerald-700">
-                      Buy {getTokenSymbol(spaceId)} now and you'll be able to vote on all new proposals this DAO creates.
-                    </p>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <span className="text-amber-600 text-lg">✕</span>
+                    </span>
+                    <span className="font-bold text-zinc-900">Missed the snapshot</span>
                   </div>
+                  <p className="text-xs text-zinc-600 mb-1">
+                    Snapshot taken at block{' '}
+                    <span className="font-mono font-semibold bg-zinc-100 px-1.5 py-0.5 rounded">
+                      {snapshotBlock || 'unknown'}
+                    </span>
+                  </p>
+                  <p className="text-[10px] text-zinc-400 mb-4">
+                    You didn't hold {getTokenSymbol(spaceId)} at that time
+                  </p>
+                  <BuyTokenButton spaceId={spaceId} variant="secondary" />
                 </>
               )}
-
-              <div className="flex gap-2 justify-center">
-                {getTokenAddress(spaceId) ? (
-                  <a
-                    href={`https://app.uniswap.org/swap?outputCurrency=${getTokenAddress(spaceId)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold text-xs hover:from-emerald-600 hover:to-teal-600 transition-all shadow-sm"
-                  >
-                    Buy {getTokenSymbol(spaceId)} for future votes →
-                  </a>
-                ) : (
-                  <a
-                    href={`https://www.google.com/search?q=how+to+buy+${getTokenSymbol(spaceId)}+token`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold text-xs hover:from-emerald-600 hover:to-teal-600 transition-all shadow-sm"
-                  >
-                    Get {getTokenSymbol(spaceId)} for future votes →
-                  </a>
-                )}
-              </div>
             </div>
           )}
         </div>
