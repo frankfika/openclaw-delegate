@@ -27,27 +27,17 @@ app.get('/api/health', (c) => c.json({
   version: '1.0.0',
 }));
 
-// Proposals endpoint with full DAO list
+// Proposals endpoint - Real Snapshot data
 app.get('/api/proposals', async (c) => {
   try {
     const SNAPSHOT_API = 'https://hub.snapshot.org/graphql';
 
-    const TRACKED_SPACES = [
-      'aave.eth', 'uniswapgovernance.eth', 'curve-dao.eth', 'compoundgrants.eth',
-      'arbitrumfoundation.eth', 'optimismgov.eth', 'stgdao.eth', 'polygonfoundation.eth',
-      'lido-snapshot.eth', 'balancer.eth', 'sushigov.eth', 'hop.eth', '1inch.eth',
-      'ens.eth', 'safe.eth', 'gitcoindao.eth', 'thegraph.eth',
-      'paraswap-dao.eth', 'olympusdao.eth', 'apecoin.eth'
-    ];
-
+    // Query for active proposals from all DAOs (no filtering)
     const query = `
       query {
         proposals(
-          first: 50,
+          first: 100,
           skip: 0,
-          where: {
-            space_in: ${JSON.stringify(TRACKED_SPACES)}
-          },
           orderBy: "created",
           orderDirection: desc
         ) {
@@ -61,6 +51,9 @@ app.get('/api/proposals', async (c) => {
           scores
           scores_total
           votes
+          type
+          network
+          snapshot
           space {
             id
             name
@@ -77,50 +70,98 @@ app.get('/api/proposals', async (c) => {
 
     const data = await response.json();
 
+    // Map proposals to our format
+    const proposals = (data.data?.proposals || []).map((p: any) => ({
+      id: p.id,
+      daoId: p.space.id,
+      daoName: p.space.name,
+      title: p.title,
+      description: p.body || '',
+      state: p.state,
+      choices: p.choices,
+      startTime: p.start,
+      endTime: p.end,
+      scores: p.scores,
+      scoresTotal: p.scores_total,
+      voteCount: p.votes,
+      network: p.network,
+      snapshot: p.snapshot,
+    }));
+
     return c.json({
-      total: data.data?.proposals?.length || 0,
-      proposals: data.data?.proposals || []
+      total: proposals.length,
+      proposals
     });
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
   }
 });
 
-// DAOs list - Full 20 DAOs
-app.get('/api/daos', (c) => {
-  const daos = [
-    // Tier 1 - Major DeFi (100 pts)
-    { id: 'aave.eth', name: 'Aave', chain: 'ethereum', tier: 1, pointsPerVote: 100, isActive: true },
-    { id: 'uniswapgovernance.eth', name: 'Uniswap', chain: 'ethereum', tier: 1, pointsPerVote: 100, isActive: true },
-    { id: 'curve-dao.eth', name: 'Curve DAO', chain: 'ethereum', tier: 1, pointsPerVote: 100, isActive: true },
-    { id: 'compoundgrants.eth', name: 'Compound', chain: 'ethereum', tier: 1, pointsPerVote: 100, isActive: true },
+// DAOs list - Extract from real Snapshot data
+app.get('/api/daos', async (c) => {
+  try {
+    const SNAPSHOT_API = 'https://hub.snapshot.org/graphql';
 
-    // Tier 2 - L2 & Infrastructure (80 pts)
-    { id: 'arbitrumfoundation.eth', name: 'Arbitrum DAO', chain: 'arbitrum', tier: 2, pointsPerVote: 80, isActive: true },
-    { id: 'optimismgov.eth', name: 'Optimism', chain: 'optimism', tier: 2, pointsPerVote: 80, isActive: true },
-    { id: 'stgdao.eth', name: 'Stargate', chain: 'ethereum', tier: 2, pointsPerVote: 80, isActive: true },
-    { id: 'polygonfoundation.eth', name: 'Polygon', chain: 'polygon', tier: 2, pointsPerVote: 80, isActive: true },
+    // Get most active spaces
+    const query = `
+      query {
+        spaces(
+          first: 50,
+          orderBy: "proposalsCount",
+          orderDirection: desc
+        ) {
+          id
+          name
+          network
+          proposalsCount
+        }
+      }
+    `;
 
-    // Tier 3 - DeFi & Liquidity (60 pts)
-    { id: 'lido-snapshot.eth', name: 'Lido', chain: 'ethereum', tier: 3, pointsPerVote: 60, isActive: true },
-    { id: 'balancer.eth', name: 'Balancer', chain: 'ethereum', tier: 3, pointsPerVote: 60, isActive: true },
-    { id: 'sushigov.eth', name: 'SushiSwap', chain: 'ethereum', tier: 3, pointsPerVote: 60, isActive: true },
-    { id: 'hop.eth', name: 'Hop Protocol', chain: 'ethereum', tier: 3, pointsPerVote: 60, isActive: true },
-    { id: '1inch.eth', name: '1inch', chain: 'ethereum', tier: 3, pointsPerVote: 60, isActive: true },
+    const response = await fetch(SNAPSHOT_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
 
-    // Tier 4 - Infrastructure & Tools (60 pts)
-    { id: 'ens.eth', name: 'ENS', chain: 'ethereum', tier: 4, pointsPerVote: 60, isActive: true },
-    { id: 'safe.eth', name: 'Safe', chain: 'ethereum', tier: 4, pointsPerVote: 60, isActive: true },
-    { id: 'gitcoindao.eth', name: 'Gitcoin', chain: 'ethereum', tier: 4, pointsPerVote: 60, isActive: true },
-    { id: 'thegraph.eth', name: 'The Graph', chain: 'ethereum', tier: 4, pointsPerVote: 60, isActive: true },
+    const data = await response.json();
+    const spaces = data.data?.spaces || [];
 
-    // Tier 5 - Emerging (40 pts)
-    { id: 'paraswap-dao.eth', name: 'ParaSwap', chain: 'ethereum', tier: 5, pointsPerVote: 40, isActive: true },
-    { id: 'olympusdao.eth', name: 'Olympus DAO', chain: 'ethereum', tier: 5, pointsPerVote: 40, isActive: true },
-    { id: 'apecoin.eth', name: 'ApeCoin DAO', chain: 'ethereum', tier: 5, pointsPerVote: 40, isActive: true },
-  ];
+    // Map to our DAO format
+    const daos = spaces.map((space: any, index: number) => {
+      // Assign tiers based on popularity
+      let tier = 5;
+      let pointsPerVote = 40;
 
-  return c.json({ total: daos.length, daos });
+      if (index < 5) {
+        tier = 1;
+        pointsPerVote = 100;
+      } else if (index < 15) {
+        tier = 2;
+        pointsPerVote = 80;
+      } else if (index < 30) {
+        tier = 3;
+        pointsPerVote = 60;
+      } else if (index < 40) {
+        tier = 4;
+        pointsPerVote = 50;
+      }
+
+      return {
+        id: space.id,
+        name: space.name,
+        chain: space.network || 'ethereum',
+        tier,
+        pointsPerVote,
+        proposalsCount: space.proposalsCount,
+        isActive: true,
+      };
+    });
+
+    return c.json({ total: daos.length, daos });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
 });
 
 // Rewards - Full catalog
