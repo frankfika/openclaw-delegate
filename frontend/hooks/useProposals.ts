@@ -43,29 +43,37 @@ function mapApiToProposal(p: any): Proposal {
   const status = mapStatus(state, p.scores);
 
   // Common fields
+  const title = p.title || 'Untitled';
+  const endTime = p.end || p.endTime || Date.now() / 1000;
+  const endDate = new Date(endTime * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
   const base = {
     id: p.id,
     daoId: p.space?.id || p.daoId || 'unknown',
     daoName: p.space?.name || p.daoName || 'Unknown',
-    title: p.title || 'Untitled',
+    title,
     description: (p.body || p.description || '').slice(0, 200),
     fullContent: p.body || p.description || '',
     state,
     status,
     governanceType: p.governanceType || 'snapshot',
     startTime: p.start || p.startTime || Date.now() / 1000,
-    endTime: p.end || p.endTime || Date.now() / 1000,
-    createdAt: p.createdAt || new Date((p.start || Date.now()) * 1000).toISOString(),
+    endTime,
+    createdAt: p.createdAt || new Date((p.start || p.startTime || Date.now()) * 1000).toISOString(),
     updatedAt: p.updatedAt || new Date().toISOString(),
     displayId: p.id?.slice(0, 8) || p.displayId || 'unknown',
+    tags: extractTags(title),
+    endDate,
   };
 
   // Snapshot-specific fields
-  if (p.space || p.snapshotNetwork) {
+  if (p.space || p.snapshotNetwork || p.source === 'Snapshot') {
     return {
       ...base,
       governanceType: 'snapshot' as const,
-      snapshotBlock: p.snapshot || '',
+      snapshotId: p.id,
+      spaceId: p.space?.id || p.daoId || 'unknown',
+      snapshotBlock: String(p.snapshot || ''),
       network: String(p.network || p.snapshotNetwork || '1'),
       choices: p.choices || ['For', 'Against', 'Abstain'],
       scores: p.scores || [0, 0, 0],

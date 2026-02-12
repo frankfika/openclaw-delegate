@@ -57,6 +57,8 @@ export interface BaseProposal {
   endTime: number; // Unix timestamp
   createdAt: string;
   updatedAt: string;
+  tags: string[];
+  endDate: string;
 }
 
 // ============ Snapshot-specific Types ============
