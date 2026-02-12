@@ -9,7 +9,7 @@
  * - Provide unified analytics and statistics
  */
 
-import { fetchActiveProposals, fetchProposalById } from './snapshot.js';
+import { fetchActiveProposals, fetchRecentProposals, fetchProposalById } from './snapshot.js';
 import { getPointsForDAO, getDAOTier } from './snapshot.js';
 
 // DAO configuration and metadata
@@ -653,40 +653,41 @@ export async function syncAllProposals(): Promise<{ synced: number; errors: stri
   let synced = 0;
   const errors: string[] = [];
 
-  for (const dao of activeDAOs) {
-    try {
-      if (!dao.snapshotSpace) continue;
+  // Fetch all recent proposals (not filtered by DAO) to get more data
+  try {
+    const allProposals = await fetchRecentProposals();
 
-      const snapshotProposals = await fetchActiveProposals(dao.snapshotSpace);
+    for (const sp of allProposals) {
+      // Find matching DAO config
+      const dao = activeDAOs.find(d => d.snapshotSpace === sp.space.id);
+      if (!dao) continue;
 
-      for (const sp of snapshotProposals) {
-        const unified: UnifiedProposal = {
-          id: sp.id,
-          daoId: dao.id,
-          daoName: dao.name,
-          title: sp.title,
-          description: sp.body || '',
-          proposer: '', // Snapshot API doesn't provide this in the basic query
-          state: sp.state as any,
-          governanceType: 'snapshot',
-          choices: sp.choices,
-          startTime: sp.start,
-          endTime: sp.end,
-          snapshot: sp.snapshot,
-          scores: sp.scores,
-          scoresTotal: sp.scores_total,
-          voteCount: sp.votes,
-          network: sp.network,
-          createdAt: new Date(sp.start * 1000).toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+      const unified: UnifiedProposal = {
+        id: sp.id,
+        daoId: dao.id,
+        daoName: dao.name,
+        title: sp.title,
+        description: sp.body || '',
+        proposer: '', // Snapshot API doesn't provide this in the basic query
+        state: sp.state as any,
+        governanceType: 'snapshot',
+        choices: sp.choices,
+        startTime: sp.start,
+        endTime: sp.end,
+        snapshot: sp.snapshot,
+        scores: sp.scores,
+        scoresTotal: sp.scores_total,
+        voteCount: sp.votes,
+        network: sp.network,
+        createdAt: new Date(sp.start * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-        storeProposal(unified);
-        synced++;
-      }
-    } catch (err: any) {
-      errors.push(`${dao.id}: ${err.message}`);
+      storeProposal(unified);
+      synced++;
     }
+  } catch (err: any) {
+    errors.push(`Sync error: ${err.message}`);
   }
 
   console.log(`🔄 Synced ${synced} proposals from ${activeDAOs.length} DAOs`);

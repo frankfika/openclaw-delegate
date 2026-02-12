@@ -10,6 +10,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 
 const API_BASE = 'http://localhost:3001/api';
 
+async function json(res: Response): Promise<any> {
+  return res.json();
+}
+
 // 检测服务器是否运行
 async function isServerRunning(): Promise<boolean> {
   try {
@@ -35,9 +39,9 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/health`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       expect(data.status).toBe('ok');
-      expect(data.name).toBe('OpenClaw Delegate');
+      expect(data.name).toBe('VoteNow');
     });
   });
 
@@ -46,7 +50,7 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/proposals`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       // 验证返回格式是 { total, proposals } 而非裸数组
       expect(data).toHaveProperty('total');
       expect(data).toHaveProperty('proposals');
@@ -58,7 +62,7 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/proposals?dao=aave`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       expect(data).toHaveProperty('proposals');
     });
 
@@ -75,7 +79,7 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/daos`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       expect(data.total).toBe(20);
       expect(data.daos.length).toBe(20);
     });
@@ -84,7 +88,7 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/votes`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       expect(data).toHaveProperty('total');
       expect(data).toHaveProperty('votes');
     });
@@ -99,7 +103,7 @@ describe('API 集成测试', () => {
         body: JSON.stringify({}),
       });
       // 应返回 4xx 或包含 error
-      const data = await res.json();
+      const data = await json(res);
       if (!res.ok) {
         expect(data).toHaveProperty('error');
       }
@@ -116,7 +120,7 @@ describe('API 集成测试', () => {
           choice: 'For',
         }),
       });
-      const data = await res.json();
+      const data = await json(res);
       expect(data.error).toBeTruthy();
     });
   });
@@ -126,7 +130,7 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/points/0xtest123`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
+      const data = await json(res);
       expect(data).toHaveProperty('totalPoints');
       expect(data).toHaveProperty('availablePoints');
       expect(data).toHaveProperty('level');
@@ -136,8 +140,9 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/leaderboard`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
-      expect(Array.isArray(data)).toBe(true);
+      const data = await json(res);
+      expect(data).toHaveProperty('leaderboard');
+      expect(Array.isArray(data.leaderboard)).toBe(true);
     });
   });
 
@@ -146,17 +151,18 @@ describe('API 集成测试', () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/rewards`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
-      expect(Array.isArray(data)).toBe(true);
-      expect(data.length).toBeGreaterThan(0);
+      const data = await json(res);
+      expect(data).toHaveProperty('rewards');
+      expect(Array.isArray(data.rewards)).toBe(true);
+      expect(data.rewards.length).toBeGreaterThan(0);
     });
 
     it('GET /api/reward-pool 应返回奖励池状态', async () => {
       if (!serverAvailable) return;
       const res = await fetch(`${API_BASE}/reward-pool`);
       expect(res.ok).toBe(true);
-      const data = await res.json();
-      expect(data).toHaveProperty('totalBudget');
+      const data = await json(res);
+      expect(data).toHaveProperty('totalPointsBudget');
     });
   });
 
@@ -170,9 +176,9 @@ describe('API 集成测试', () => {
         body: JSON.stringify({ walletAddress: wallet }),
       });
       expect(res.ok).toBe(true);
-      const data = await res.json();
-      expect(data).toHaveProperty('id');
-      expect(data.wallets).toHaveLength(1);
+      const data = await json(res);
+      expect(data).toHaveProperty('user');
+      expect(data.user.connectedWallets).toHaveLength(1);
     });
   });
 

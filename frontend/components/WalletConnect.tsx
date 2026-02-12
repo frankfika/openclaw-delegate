@@ -2,8 +2,16 @@ import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { Wallet, LogOut } from 'lucide-react';
 
+const CHAIN_LABELS: Record<number, string> = {
+  1: 'ETH',
+  11155111: 'SEP',
+  42161: 'ARB',
+  10: 'OP',
+  137: 'POLY',
+};
+
 const WalletConnect: React.FC = () => {
-  const { address, isConnected, chain, connectWallet, disconnect } = useWallet();
+  const { address, isConnected, chain, connectWallet, disconnect, error } = useWallet();
 
   if (isConnected && address) {
     return (
@@ -15,7 +23,7 @@ const WalletConnect: React.FC = () => {
           </span>
           {chain && (
             <span className="text-[10px] font-bold text-zinc-400 uppercase">
-              {chain.name === 'Sepolia' ? 'SEP' : 'ETH'}
+              {CHAIN_LABELS[chain.id] || chain.name?.slice(0, 4)?.toUpperCase() || 'ETH'}
             </span>
           )}
         </div>
@@ -31,13 +39,20 @@ const WalletConnect: React.FC = () => {
   }
 
   return (
-    <button
-      onClick={connectWallet}
-      className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-full text-sm font-semibold hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg"
-    >
-      <Wallet size={16} />
-      <span className="hidden sm:inline">Connect</span>
-    </button>
+    <div className="flex flex-col items-end gap-2">
+      <button
+        onClick={connectWallet}
+        className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-full text-sm font-semibold hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg"
+      >
+        <Wallet size={16} />
+        <span className="hidden sm:inline">Connect</span>
+      </button>
+      {error && (
+        <div className="text-xs text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+          {error.message || 'Connection failed'}
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 /**
- * Dashboard API Server — runs as an OpenClaw plugin service.
+ * Dashboard API Server for VoteNow.
  *
  * Provides the HTTP API that the React frontend consumes.
  * This replaces the standalone Hono server entry point.
@@ -8,6 +8,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { analyzeProposal, chatWithAgent } from './llm.js';
 import { daosRouter } from '../routes/daos.js';
 import { pointsRouter } from '../routes/points.js';
@@ -38,8 +39,8 @@ export async function startDashboardServer(port: number, ctx: DashboardContext) 
   // Health check
   app.get('/api/health', (c) => c.json({
     status: 'ok',
-    name: 'OpenClaw Delegate',
-    framework: 'OpenClaw Plugin',
+    name: 'VoteNow',
+    framework: 'VoteNow',
     version: '1.0.0',
   }));
 
@@ -147,9 +148,16 @@ export async function startDashboardServer(port: number, ctx: DashboardContext) 
   // ─── Activity Log ──────���────────────────────────────────────────
   app.get('/api/activity', (c) => c.json(ctx.activityLog));
 
+  // API 404 catch-all
+  app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404));
+
+  // 静态文件 + SPA fallback
+  app.use('/*', serveStatic({ root: '../frontend/dist' }));
+  app.use('/*', serveStatic({ root: '../frontend/dist', path: 'index.html' }));
+
   // Start server
   server = serve({ fetch: app.fetch, port }, () => {
-    console.log(`✅ OpenClaw Delegate dashboard at http://localhost:${port}`);
+    console.log(`✅ VoteNow dashboard at http://localhost:${port}`);
   });
 
   // Sync proposals from Snapshot on startup so in-memory data is available

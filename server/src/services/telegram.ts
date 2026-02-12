@@ -26,8 +26,8 @@ export async function startTelegramBot() {
     });
 
     await ctx.reply(
-      '🤖 *Welcome to OpenClaw Delegate!*\n\n' +
-      'I\'m your AI-powered DAO governance agent, built on OpenClaw.\n' +
+      '🤖 *Welcome to VoteNow!*\n\n' +
+      'I\'m your AI-powered DAO governance agent, built on VoteNow.\n' +
       'I monitor Snapshot proposals, analyze them with AI, and help you vote.\n\n' +
       'Commands:\n' +
       '/proposals - View active proposals\n' +
@@ -84,7 +84,7 @@ export async function startTelegramBot() {
     const daos = user?.daos?.join(', ') || 'aave.eth, uniswapgovernance.eth, lido-snapshot.eth';
 
     await ctx.reply(
-      '⚙️ *OpenClaw Delegate Settings*\n\n' +
+      '⚙️ *VoteNow Settings*\n\n' +
       `Tracked DAOs: ${daos}\n\n` +
       'To update, reply with DAO space IDs separated by commas.\n' +
       'Example: `aave.eth, ens.eth, safe.eth`',
@@ -121,7 +121,7 @@ export async function startTelegramBot() {
     const proposalId = match[2];
 
     await ctx.answerCallbackQuery({
-      text: `Vote ${direction === 'for' ? '✅ For' : '❌ Against'} recorded! Open OpenClaw web app to sign with MetaMask.`,
+      text: `Vote ${direction === 'for' ? '✅ For' : '❌ Against'} recorded! Open VoteNow web app to sign with MetaMask.`,
       show_alert: true,
     });
 
@@ -129,7 +129,7 @@ export async function startTelegramBot() {
       `🗳 *Vote Intent Recorded*\n\n` +
       `Direction: ${direction === 'for' ? '✅ For' : '❌ Against'}\n` +
       `Proposal: \`${proposalId.slice(0, 10)}...\`\n\n` +
-      `Open the OpenClaw web app to complete the vote with your wallet signature.`,
+      `Open the VoteNow web app to complete the vote with your wallet signature.`,
       { parse_mode: 'Markdown' }
     );
   });

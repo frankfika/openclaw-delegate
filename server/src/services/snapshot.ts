@@ -188,12 +188,12 @@ export async function fetchProposalById(id: string): Promise<SnapshotProposal | 
   return json.data?.proposal || null;
 }
 
-// Fetch recent closed proposals for activity history
+// Fetch recent proposals (all states) for activity history
 export async function fetchRecentProposals(): Promise<SnapshotProposal[]> {
   const query = `
     query RecentProposals {
       proposals(
-        first: 10
+        first: 50
         skip: 0
         where: {
           space_in: ${JSON.stringify(TRACKED_SPACES)}

@@ -104,9 +104,15 @@ daosRouter.get('/proposals', (c) => {
 
   const proposals = getProposals({ daoId, state, limit });
 
+  // Add fullContent field for frontend compatibility
+  const proposalsWithFullContent = proposals.map(p => ({
+    ...p,
+    fullContent: p.description,
+  }));
+
   return c.json({
-    total: proposals.length,
-    proposals,
+    total: proposalsWithFullContent.length,
+    proposals: proposalsWithFullContent,
   });
 });
 
@@ -121,8 +127,14 @@ daosRouter.get('/proposals/:id', (c) => {
 
   const votes = getVoteRecords({ proposalId });
 
+  // Add fullContent field for frontend compatibility
+  const proposalWithFullContent = {
+    ...proposal,
+    fullContent: proposal.description,
+  };
+
   return c.json({
-    proposal,
+    proposal: proposalWithFullContent,
     votes,
   });
 });

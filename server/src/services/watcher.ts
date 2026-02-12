@@ -1,8 +1,8 @@
 /**
  * Proposal Watcher — background service that polls Snapshot for new proposals
- * and pushes notifications through OpenClaw's messaging channels (Telegram, etc.)
+ * and pushes notifications through VoteNow's messaging channels (Telegram, etc.)
  *
- * Instead of running a custom grammy bot, this uses OpenClaw's built-in
+ * Instead of running a custom grammy bot, this uses VoteNow's built-in
  * channel system to send notifications.
  */
 
@@ -66,12 +66,12 @@ export async function startProposalWatcher(
           `⏰ Ends: ${endDate}${riskHint}\n\n` +
           `Use /proposals to see all active proposals.`;
 
-        // Push through OpenClaw's channel system if available
+        // Push through VoteNow's channel system if available
         if (api.sendMessage) {
           try {
             await api.sendMessage({ text: message, parseMode: 'HTML' });
           } catch (err) {
-            console.warn('Failed to push notification via OpenClaw channel:', err);
+            console.warn('Failed to push notification via VoteNow channel:', err);
           }
         }
 

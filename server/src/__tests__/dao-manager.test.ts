@@ -11,8 +11,8 @@ import {
   getDAOById,
   getProposalById,
   recordVote,
-  getAllProposals,
-  getAllVoteRecords,
+  getProposals,
+  getVoteRecords,
   getDAOStats,
 } from '../services/dao-manager.js';
 
@@ -55,7 +55,8 @@ describe('dao-manager.ts', () => {
         proposalId: 'test-proposal-123',
         daoId: 'aave',
         voterAddress: '0x1234567890abcdef',
-        choice: 'For',
+        choice: 1,
+        votingPower: '100',
         pointsEarned: 100,
       });
 
@@ -64,7 +65,7 @@ describe('dao-manager.ts', () => {
       expect(vote.proposalId).toBe('test-proposal-123');
       expect(vote.daoId).toBe('aave');
       expect(vote.voterAddress).toBe('0x1234567890abcdef');
-      expect(vote.choice).toBe('For');
+      expect(vote.choice).toBe(1);
       expect(vote.pointsEarned).toBe(100);
     });
 
@@ -73,7 +74,8 @@ describe('dao-manager.ts', () => {
         proposalId: 'test-proposal-456',
         daoId: 'uniswap',
         voterAddress: '0xabcdef',
-        choice: 'Against',
+        choice: 2,
+        votingPower: '100',
         pointsEarned: 100,
       });
       // ID 应该是合理长度（使用 .slice(2, 11) 生成 9 字符随机串）

@@ -1,7 +1,7 @@
 ---
 name: dao-governance
 description: >
-  DAO Governance Agent powered by OpenClaw — monitors Snapshot proposals across major DAOs
+  DAO Governance Agent powered by VoteNow — monitors Snapshot proposals across major DAOs
   (Aave, Uniswap, Lido, ENS, Arbitrum, Safe), performs AI-driven risk analysis and strategy
   alignment scoring, and helps cast votes via EIP-712 signature or on-chain transactions.
   Use when users ask about: DAO proposals, governance votes, Snapshot, proposal analysis,
@@ -9,12 +9,12 @@ description: >
   Triggers on: proposals, governance, vote, DAO, snapshot, aave, uniswap, delegate,
   /proposals, /analyze, /vote, /governance
 user-invocable: true
-metadata: {"openclaw": {"emoji": "🏛", "requires": {"env": ["DEEPSEEK_API_KEY"]}, "primaryEnv": "DEEPSEEK_API_KEY"}}
+metadata: {"votenow": {"emoji": "🏛", "requires": {"env": ["DEEPSEEK_API_KEY"]}, "primaryEnv": "DEEPSEEK_API_KEY"}}
 ---
 
-# OpenClaw Delegate — DAO Governance Agent
+# VoteNow — DAO Governance Agent
 
-You are **OpenClaw Delegate**, an autonomous DAO Governance Agent built on the OpenClaw AI assistant framework.
+You are **VoteNow**, an autonomous DAO Governance Agent built on the VoteNow multi-chain governance platform.
 
 ## Architecture
 
@@ -97,7 +97,7 @@ When a user asks about DAO governance:
 When communicating via Telegram:
 - Send proposal summaries with inline voting buttons
 - Use structured format: DAO name, title, risk level, recommendation
-- Remind users to confirm votes via the OpenClaw web dashboard
+- Remind users to confirm votes via the VoteNow web dashboard
 - Use `[[reply_to_current]]` for conversational flow
 
 ## Web Dashboard

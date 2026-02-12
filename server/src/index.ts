@@ -1,18 +1,18 @@
 /**
- * OpenClaw Delegate — Standalone Entry Point
+ * VoteNow — Standalone Entry Point
  *
  * This runs the DAO governance agent as a standalone server for development
- * and demo purposes. In production, the plugin is loaded by OpenClaw via
- * `openclaw.plugin.json` and `plugin.ts`.
+ * and demo purposes. In production, the plugin is loaded by VoteNow via
+ * the plugin config and `plugin.ts`.
  *
  * Standalone mode:
  *   - Starts the dashboard API server (Hono)
  *   - Starts the Telegram bot (grammy) for direct bot interactions
  *   - Starts the proposal watcher for push notifications
  *
- * Plugin mode (via OpenClaw):
- *   - OpenClaw loads plugin.ts → registers tools + services
- *   - Telegram handled by OpenClaw's built-in channel
+ * Plugin mode (via VoteNow):
+ *   - VoteNow loads plugin.ts → registers tools + services
+ *   - Telegram handled by VoteNow's built-in channel
  *   - Dashboard runs as a plugin service
  */
 
@@ -33,7 +33,7 @@ function addActivity(activity: any) {
   if (activityLog.length > 100) activityLog.pop();
 }
 
-console.log('🏛 OpenClaw Delegate — Standalone Mode');
+console.log('🏛 VoteNow — Standalone Mode');
 console.log(`🚀 Starting on port ${config.port}...`);
 
 // Start dashboard API

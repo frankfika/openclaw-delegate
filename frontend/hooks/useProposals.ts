@@ -25,13 +25,15 @@ export function useProposals(dao?: string) {
         status: p.state === 'active' ? ProposalStatus.ACTIVE
           : p.state === 'closed' ? ProposalStatus.PASSED
           : p.status || ProposalStatus.PENDING,
-        endDate: p.end ? new Date(p.end * 1000).toISOString().split('T')[0] : p.endDate || '',
+        endDate: p.end ? new Date(p.end * 1000).toISOString().split('T')[0]
+          : p.endTime ? new Date(p.endTime * 1000).toISOString().split('T')[0]
+          : p.endDate || '',
         votesFor: p.scores?.[0] || p.votesFor || 0,
         votesAgainst: p.scores?.[1] || p.votesAgainst || 0,
-        participationRate: p.votes ? Math.min(100, (p.votes / 1000) * 100) : p.participationRate || 0,
+        participationRate: p.votes || p.participationRate || 0,
         tags: p.tags || extractTags(p.title || ''),
         // Snapshot-specific fields for voting
-        spaceId: p.space?.id,
+        spaceId: p.space?.id || p.daoId,
         snapshotNetwork: p.network,
         choices: p.choices,
         snapshot: p.snapshot,

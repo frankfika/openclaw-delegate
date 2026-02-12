@@ -1,33 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Proposal } from '../types';
-import { Filter, ChevronRight, Clock } from 'lucide-react';
+import { ChevronRight, Clock } from 'lucide-react';
 
 interface ProposalsQueueProps {
   proposals: Proposal[];
   onSelectProposal: (proposal: Proposal) => void;
 }
 
+const CHAIN_FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: '1', label: 'Ethereum' },
+  { id: '42161', label: 'Arbitrum' },
+  { id: '10', label: 'Optimism' },
+  { id: '137', label: 'Polygon' },
+];
+
 const ProposalsQueue: React.FC<ProposalsQueueProps> = ({ proposals, onSelectProposal }) => {
+  const [chainFilter, setChainFilter] = useState('all');
+
+  const filtered = chainFilter === 'all'
+    ? proposals
+    : proposals.filter((p) => p.snapshotNetwork === chainFilter);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/50">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/50">
         <div>
           <h2 className="text-xl font-bold text-zinc-900">Active Mandates</h2>
           <p className="text-xs text-zinc-500 font-medium">Prioritized by urgency</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl text-sm font-bold text-zinc-600 hover:bg-zinc-50 shadow-sm border border-zinc-100 transition-colors">
-           <Filter size={16} /> Filter
-        </button>
+        <div className="flex flex-wrap gap-1.5">
+          {CHAIN_FILTERS.map((cf) => (
+            <button
+              key={cf.id}
+              onClick={() => setChainFilter(cf.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                chainFilter === cf.id
+                  ? 'bg-zinc-900 text-white shadow-sm'
+                  : 'bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-100'
+              }`}
+            >
+              {cf.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-3">
-         {proposals.map((proposal) => (
-            <div 
-               key={proposal.id} 
+         {filtered.length === 0 ? (
+           <div className="text-center py-12 text-zinc-400">
+             <p className="text-sm font-medium">No proposals for this chain filter.</p>
+           </div>
+         ) : filtered.map((proposal) => (
+            <div
+               key={proposal.id}
                onClick={() => onSelectProposal(proposal)}
                className="group bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl p-5 hover:scale-[1.01] hover:shadow-float transition-all cursor-pointer flex items-center gap-6"
             >
-               {/* Icon/Logo Placeholder */}
                <div className="w-12 h-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-sm font-bold text-zinc-600 flex-shrink-0">
                   {proposal.daoName[0]}
                </div>
@@ -37,7 +66,12 @@ const ProposalsQueue: React.FC<ProposalsQueueProps> = ({ proposals, onSelectProp
                      <span className="text-xs font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-md">
                         {proposal.daoName}
                      </span>
-                     <span className="text-xs text-zinc-400 font-mono">#{proposal.id}</span>
+                     {proposal.snapshotNetwork && proposal.snapshotNetwork !== '1' && (
+                       <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                         {CHAIN_FILTERS.find(c => c.id === proposal.snapshotNetwork)?.label || `Chain ${proposal.snapshotNetwork}`}
+                       </span>
+                     )}
+                     <span className="text-xs text-zinc-400 font-mono">#{proposal.displayId || proposal.id.slice(0, 8)}</span>
                   </div>
                   <h3 className="text-base font-bold text-zinc-900 truncate group-hover:text-indigo-600 transition-colors">
                      {proposal.title}
@@ -49,9 +83,9 @@ const ProposalsQueue: React.FC<ProposalsQueueProps> = ({ proposals, onSelectProp
                      <Clock size={12} /> {proposal.endDate}
                   </div>
                   <div className="w-32 h-2 bg-zinc-100 rounded-full overflow-hidden">
-                     <div 
-                        className="h-full bg-zinc-800 rounded-full" 
-                        style={{ width: `${(proposal.votesFor / (proposal.votesFor + proposal.votesAgainst)) * 100}%` }} 
+                     <div
+                        className="h-full bg-zinc-800 rounded-full"
+                        style={{ width: `${(proposal.votesFor / Math.max(proposal.votesFor + proposal.votesAgainst, 1)) * 100}%` }}
                      />
                   </div>
                </div>

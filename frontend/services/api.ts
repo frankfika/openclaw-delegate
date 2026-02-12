@@ -97,3 +97,48 @@ export async function fetchActivityLog(): Promise<any[]> {
     return [];
   }
 }
+
+// --- Points & Rewards API ---
+
+export async function fetchUserPoints(address: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/points/${address}`);
+  if (!res.ok) throw new Error('Failed to fetch points');
+  return res.json();
+}
+
+export async function fetchUserDashboard(address: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/users/${address}/dashboard`);
+  if (!res.ok) throw new Error('Failed to fetch dashboard');
+  return res.json();
+}
+
+export async function fetchLeaderboard(limit = 20): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/leaderboard?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch leaderboard');
+  return res.json();
+}
+
+export async function fetchRewards(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/rewards?active=true`);
+  if (!res.ok) throw new Error('Failed to fetch rewards');
+  return res.json();
+}
+
+export async function redeemReward(address: string, rewardId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/rewards/${rewardId}/redeem`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ walletAddress: address }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Redeem failed' }));
+    throw new Error(err.error || 'Redeem failed');
+  }
+  return res.json();
+}
+
+export async function fetchRedemptions(address: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/redemptions/user/${address}`);
+  if (!res.ok) throw new Error('Failed to fetch redemptions');
+  return res.json();
+}

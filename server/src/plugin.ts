@@ -1,9 +1,9 @@
 /**
- * OpenClaw Delegate — Plugin Entry Point
+ * VoteNow — Plugin Entry Point
  *
- * Registers agent tools and background services with the OpenClaw framework.
+ * Registers agent tools and background services with the VoteNow framework.
  * This is the core integration layer that turns the DAO governance logic
- * into an OpenClaw plugin.
+ * into an VoteNow plugin.
  */
 
 import { fetchActiveProposals, fetchProposalById, fetchRecentProposals } from './services/snapshot.js';
@@ -217,7 +217,7 @@ export default function register(api: any) {
             `${params.reason ? `Reason: ${params.reason}\n` : ''}` +
             `Status: ⏳ Pending user confirmation\n\n` +
             `⚠️ **Human-in-the-loop**: The user must confirm this vote by signing with their wallet ` +
-            `via the OpenClaw web dashboard (http://localhost:${config.dashboardPort || 3001}) ` +
+            `via the VoteNow web dashboard (http://localhost:${config.dashboardPort || 3001}) ` +
             `or by clicking the confirmation button in Telegram.`,
         }],
       };
@@ -230,10 +230,10 @@ export default function register(api: any) {
     async start() {
       const port = config.dashboardPort || 3001;
       await startDashboardServer(port, { voteIntents, activityLog, addActivity });
-      console.log(`🏛 OpenClaw Delegate dashboard running at http://localhost:${port}`);
+      console.log(`🏛 VoteNow dashboard running at http://localhost:${port}`);
     },
     async stop() {
-      console.log('🏛 OpenClaw Delegate dashboard stopped');
+      console.log('🏛 VoteNow dashboard stopped');
     },
   });
 
@@ -270,5 +270,5 @@ export default function register(api: any) {
     },
   });
 
-  console.log('🏛 OpenClaw Delegate plugin registered');
+  console.log('🏛 VoteNow plugin registered');
 }

@@ -1,6 +1,6 @@
 {
-  "id": "openclaw-delegate",
-  "name": "OpenClaw Delegate",
+  "id": "votenow",
+  "name": "VoteNow",
   "description": "Autonomous DAO Governance Agent — monitors Snapshot proposals, analyzes with AI, and helps you vote on-chain.",
   "version": "1.0.0",
   "configSchema": {

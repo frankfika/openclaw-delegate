@@ -1,14 +1,21 @@
 import OpenAI from 'openai';
 import { config } from '../config.js';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+
+// Configure proxy agent for DeepSeek API (required for node-fetch compatibility)
+const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy;
+const httpAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
 const client = new OpenAI({
   apiKey: config.deepseekApiKey,
-  baseURL: 'https://api.deepseek.com',
+  baseURL: 'https://api.deepseek.com/v1',
+  httpAgent,
+  timeout: 60000,
 });
 
 export async function analyzeProposal(proposalText: string): Promise<any> {
   const prompt = `
-You are OpenClaw Delegate, an autonomous DAO Governance Agent built on the OpenClaw AI assistant framework.
+You are VoteNow, an autonomous DAO Governance Agent built on the VoteNow AI assistant framework.
 Your user has a "Conservative Growth" strategy and holds significant ETH.
 
 Task: Analyze this DAO governance proposal for the user.
@@ -32,7 +39,7 @@ Respond ONLY with the JSON object, no markdown formatting.`;
     const response = await client.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: 'You are OpenClaw Delegate, an AI DAO governance analyst powered by OpenClaw. Always respond with valid JSON.' },
+        { role: 'system', content: 'You are VoteNow, an AI DAO governance analyst powered by VoteNow. Always respond with valid JSON.' },
         { role: 'user', content: prompt },
       ],
       temperature: 0.3,
@@ -76,7 +83,7 @@ export async function chatWithAgent(
     const messages: any[] = [
       {
         role: 'system',
-        content: `You are OpenClaw Delegate, an autonomous DAO Governance Agent powered by the OpenClaw AI assistant framework. You help users understand DAO proposals and make informed voting decisions. Be concise and professional.
+        content: `You are VoteNow, an autonomous DAO Governance Agent powered by the VoteNow AI assistant framework. You help users understand DAO proposals and make informed voting decisions. Be concise and professional.
 
 Context about the current proposal:
 ${context.slice(0, 2000)}`,
