@@ -84,9 +84,11 @@ app.get('/api/proposals', async (c) => {
       daoId: p.space.id,
       daoName: p.space.name,
       title: p.title,
+      body: p.body || '',
       description: p.body || '',
       state: p.state,
       choices: p.choices,
+      type: p.type || 'single-choice',
       startTime: p.start,
       endTime: p.end,
       scores: p.scores,
@@ -94,7 +96,7 @@ app.get('/api/proposals', async (c) => {
       voteCount: p.votes,
       network: p.network,
       snapshot: p.snapshot,
-      source: 'Snapshot', // Add source field
+      source: 'Snapshot',
     }));
 
     // Add a test OnChain proposal at the beginning
