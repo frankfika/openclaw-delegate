@@ -237,46 +237,40 @@ const VoteButton: React.FC<VoteButtonProps> = ({
           {hasNoVP && (
             <div className="text-[10px] text-zinc-500 text-center max-w-sm mx-auto leading-relaxed bg-amber-50 border border-amber-100 rounded-lg p-3 space-y-2">
               <p className="mb-1">
-                <span className="font-semibold text-amber-700">Why can't I vote?</span>
+                <span className="font-semibold text-amber-700">Why can't I vote on THIS proposal?</span>
               </p>
-              <p className="mb-2">
-                Snapshot voting uses a <span className="font-bold text-amber-800">historical snapshot</span> from when the proposal was created.
-                You need to have owned <span className="font-bold text-amber-800">{getTokenSymbol(spaceId)}</span> tokens <span className="font-bold">at that specific block height</span> to vote.
+              <p className="mb-2 bg-amber-100 border border-amber-200 rounded px-2 py-1.5">
+                <span className="font-bold text-amber-900">This proposal uses a snapshot from the past.</span> You needed to own <span className="font-bold text-amber-800">{getTokenSymbol(spaceId)}</span> tokens <span className="underline">before this proposal was created</span>.
               </p>
-              <p className="text-amber-600 font-semibold mb-2 bg-amber-100 border border-amber-200 rounded px-2 py-1">
-                ⚠️ Tokens bought AFTER proposal creation won't count for this vote
+              <p className="text-rose-700 font-semibold mb-2 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+                ⚠️ Buying tokens NOW won't let you vote on this proposal
               </p>
-              <p className="text-[9px] text-zinc-600 mb-2">
-                Buy tokens now to vote on <span className="font-semibold">future proposals</span> in this DAO
-              </p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded px-2 py-1.5 mb-2">
+                <p className="text-emerald-800 font-semibold mb-1">✅ But you CAN vote on FUTURE proposals!</p>
+                <p className="text-[9px] text-emerald-700">
+                  Buy {getTokenSymbol(spaceId)} now and you'll be able to vote on all new proposals this DAO creates.
+                </p>
+              </div>
               <div className="flex gap-2 justify-center">
                 {getTokenAddress(spaceId) ? (
                   <a
                     href={`https://app.uniswap.org/swap?outputCurrency=${getTokenAddress(spaceId)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-semibold text-xs hover:from-pink-600 hover:to-purple-600 transition-all shadow-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold text-xs hover:from-emerald-600 hover:to-teal-600 transition-all shadow-sm"
                   >
-                    Buy {getTokenSymbol(spaceId)} on Uniswap →
+                    Buy {getTokenSymbol(spaceId)} for future votes →
                   </a>
                 ) : (
                   <a
                     href={`https://www.google.com/search?q=how+to+buy+${getTokenSymbol(spaceId)}+token`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-semibold text-xs hover:from-pink-600 hover:to-purple-600 transition-all shadow-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold text-xs hover:from-emerald-600 hover:to-teal-600 transition-all shadow-sm"
                   >
-                    Search how to buy {getTokenSymbol(spaceId)} →
+                    Get {getTokenSymbol(spaceId)} for future votes →
                   </a>
                 )}
-                <a
-                  href={`https://app.1inch.io/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-semibold text-xs hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm"
-                >
-                  1inch DEX →
-                </a>
               </div>
             </div>
           )}
