@@ -94,9 +94,10 @@ function BuyTokenButton({ spaceId, variant = 'primary' }: { spaceId?: string; va
   const primaryClass = "bg-zinc-900 text-white hover:bg-zinc-800";
   const secondaryClass = "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200";
 
+  // Always link to Uniswap - with token address if known, otherwise just open Uniswap
   const href = tokenAddress
     ? `https://app.uniswap.org/swap?outputCurrency=${tokenAddress}`
-    : `https://www.google.com/search?q=how+to+buy+${tokenSymbol}+token`;
+    : 'https://app.uniswap.org/swap';
 
   return (
     <a
